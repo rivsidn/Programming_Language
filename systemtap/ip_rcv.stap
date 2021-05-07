@@ -1,0 +1,5 @@
+probe kernel.function("ip_rcv")
+{
+	printf("ip_rcv\n");
+	exit();
+}
