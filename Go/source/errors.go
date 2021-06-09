@@ -1,11 +1,11 @@
 package main
 
-/* 怎么理解这段程序？ */
 import (
 	"errors"
 	"fmt"
 )
 
+/* 函数可以有两个返回值 */
 func f1(arg int) (int, error) {
 	if arg == 42 {
 		return -1, errors.New("can't work witth 42")
