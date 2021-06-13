@@ -5,7 +5,6 @@ import (
 	"time"
 )
 
-/* 脑子转不动了 */
 func main() {
 	timer1 := time.NewTimer(2*time.Second)
 
@@ -17,6 +16,8 @@ func main() {
 		<-timer2.C
 		fmt.Println("Timer 2 fired")
 	}()
+
+	//定时器触发之前结束定时器channel
 	stop2 := timer2.Stop()
 	if stop2 {
 		fmt.Println("Timer 2 stopped")
