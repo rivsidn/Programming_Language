@@ -19,11 +19,13 @@ const (
 )
 
 func main() {
+	/* 转换当前时间成一个64位的整数，作为种子传给Seed() */
 	rand.Seed(time.Now().UTC().UnixNano())
 	lissajous(os.Stdout)
 }
 
 func lissajous(out io.Writer) {
+	/* 常量定义 */
 	const (
 		cycles	= 5
 		res	= 0.001
