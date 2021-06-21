@@ -21,13 +21,17 @@ func main() {
 	Q2 := months[4:7]
 	summer := months[6:9]
 
-	fmt.Printf("Q2: %d\n", cap(Q2))
 	fmt.Println(Q2)
-	fmt.Printf("summer: %d\n", cap(summer))
 	fmt.Println(summer)
-	fmt.Println(summer[0])
+	/* 此处会修改months 中的内容 */
 	summer[0] = "22yue"
 	fmt.Println(summer)
+	fmt.Println(months)
 
+	fmt.Println("~~~~~~~~~")
+	//更换了一个新的slice，此时的slice 是可以拓展的
+	test := append(summer, "13yue")
+	fmt.Println(test)
+	fmt.Printf("test cap %d\n", cap(test))
 	fmt.Println(months)
 }
