@@ -1,0 +1,39 @@
+1624869389242	geckodriver	INFO	Listening on 127.0.0.1:54715
+1624869389248	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofiler7xokK"
+Error: no DISPLAY environment variable specified
+1624869410311	geckodriver	INFO	Listening on 127.0.0.1:55083
+1624869410316	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileG6qUyZ"
+1624869417692	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at /tmp/rust_mozprofileG6qUyZ/search.json.mozlz4", (void 0)))
+1624869426924	Marionette	INFO	Listening on port 43667
+1624869427214	Marionette	WARN	TLS certificate errors will be ignored for this session
+JavaScript error: resource://gre/actors/AutoCompleteChild.jsm, line 125: Error: Invalid autocomplete selectedIndex
+1624869508521	Marionette	INFO	Stopped listening on port 43667
+JavaScript error: resource://gre/modules/Sqlite.jsm, line 927: Error: Connection is not open.
+
+###!!! [Parent][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1624869685800	geckodriver	INFO	Listening on 127.0.0.1:47527
+1624869685805	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileurI4Rp"
+1624869687528	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at /tmp/rust_mozprofileurI4Rp/search.json.mozlz4", (void 0)))
+1624869691050	Marionette	INFO	Listening on port 43397
+1624869691143	Marionette	WARN	TLS certificate errors will be ignored for this session
+JavaScript error: resource://gre/actors/AutoCompleteChild.jsm, line 125: Error: Invalid autocomplete selectedIndex
+1624869980644	Marionette	INFO	Stopped listening on port 43397
+console.error: services.settings: 
+  security-state/cert-revocations Signature failed  TypeError: NetworkError when attempting to fetch resource.
+console.error: services.settings: 
+  Message: TypeError: NetworkError when attempting to fetch resource.
+console.warn: services.settings: security-state/intermediates sync interrupted by shutdown
+console.warn: services.settings: security-state/onecrl sync interrupted by shutdown
+JavaScript error: resource://gre/modules/Sqlite.jsm, line 927: Error: Connection is not open.
+1624869984629	geckodriver	INFO	Listening on 127.0.0.1:35253
+1624869984634	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofilezP0Twp"
+1624869986438	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at /tmp/rust_mozprofilezP0Twp/search.json.mozlz4", (void 0)))
+1624869990011	Marionette	INFO	Listening on port 38721
+1624869990069	Marionette	WARN	TLS certificate errors will be ignored for this session
+Exiting due to channel error.
+Exiting due to channel error.
+Exiting due to channel error.
