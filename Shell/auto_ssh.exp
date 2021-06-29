@@ -1,0 +1,9 @@
+#! /usr/bin/expect
+
+spawn ssh rivsidn@127.0.0.1
+expect "rivsidn@127.0.0.1's password: "
+send "passwd\r"
+
+interact
+
+
