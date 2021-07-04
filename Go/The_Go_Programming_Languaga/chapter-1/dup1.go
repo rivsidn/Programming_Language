@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
+	//创造一个映射
 	counts := make(map[string]int)
 	input := bufio.NewScanner(os.Stdin)
 	for input.Scan() {
