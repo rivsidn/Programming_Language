@@ -4,7 +4,31 @@ import (
 	"fmt"
 )
 
+func fun(m map[int]string) {
+	m[3] = "ccc"
+
+	m = map[int]string {
+		1: "ddd",
+		2: "eee",
+		3: "fff",
+	}
+}
+
 func main() {
+	//map 是一个引用数据类型，传递给函数的是他的一个引用，
+	//所以将在函数中改变m 的数据在main中会看到。
+	//但是覆盖了map 的值在main 中却看不到。
+	m3 := map[int]string {
+		1:"aaa",
+		2:"bbb",
+	}
+	fun(m3)
+	for k,v := range m3 {
+		fmt.Println(k, v)
+	}
+
+	fmt.Println("---------------------")
+
 	//声明了一个map类型的变量但是没有创建，编译时候会报错
 	//panic: assignment to entry in nil map
 //	var m map[string]string

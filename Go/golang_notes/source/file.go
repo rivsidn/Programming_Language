@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io/ioutil"
 	"os"
 )
 
@@ -22,6 +23,12 @@ func main() {
 	for input.Scan() {
 		fmt.Println(input.Text())
 	}
+	//读取文件内容(2) data是字节切片
+	data, err := ioutil.ReadFile(file)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(string(data))
 
 
 	//写入文件，暂时没学会 :)
