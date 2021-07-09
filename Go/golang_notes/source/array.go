@@ -41,7 +41,12 @@ func main() {
 	for i, v := range a4 {
 		fmt.Println(i, ":", v)
 	}
-
+/*
+	//数组初始化(5) error
+	//必须要指定 var a5 = [5]int{1, 2, 3}
+	var a5 [5]int = {1, 2, 3}
+	fmt.Println(a5)
+*/
 	//数组比较
 	//两个相同类型的数组是可以比较的，不同类型的数组没法比较
 	var aa = [2]int{1, 2}
@@ -52,14 +57,14 @@ func main() {
 		fmt.Println("not equal")
 	}
 /*
-	//此时会编译不通过
+	//此时会编译不通过, 两个数组类型不同
 	var cc = [3]int{}
 	if aa == cc {
 		fmt.Println("equal")
 	} else {
 		fmt.Println("not equal")
 	}
- */
+*/
 
 	//数组函数调用
 	var a3  = [3]int{10, 11, 12}
