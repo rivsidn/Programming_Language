@@ -1,0 +1,21 @@
+#! /bin/bash
+
+IP=`ifconfig wlp6s0 | grep 'inet[^6]' | cut -c 14-24`
+
+ON=0
+if [ -z $1 ]; then
+	ON=0;
+else
+	if [ $1 = "on" ]; then
+		ON=1
+	fi
+fi
+
+if [ ${ON} -eq 1 ]; then
+	iptables -t nat -A POSTROUTING -s 172.31.3.136 -o wlp6s0 -j MASQUERADE
+	echo 1 > /proc/sys/net/ipv4/ip_forward
+else
+	iptables -t nat -F
+	echo 0 > /proc/sys/net/ipv4/ip_forward
+fi
+
