@@ -16,3 +16,16 @@ fi
 
 
 
+:<<COMMENT
+为什么通过这种方式获取到的${line} 不能作为连接数组的下标
+
+declare -A assArray
+
+cat test.txt | while read line
+do
+	assArray[${line}]='y'
+done
+
+echo "${assArray[@]}"		# 此时会显示为空，这里是为什么？
+
+COMMENT
