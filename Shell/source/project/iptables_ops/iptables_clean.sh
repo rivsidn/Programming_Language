@@ -35,7 +35,7 @@ declare -A raw
 raw=([PREROUTING]=1 [OUTPUT]=1)
 nat=([PREROUTING]=1 [INPUT]=1 [OUTPUT]=1 [POSTROUTING]=1)
 filter=([INPUT]=1 [FORWARD]=1 [OUTPUT]=1)
-mangle=([PREROUTING]=1 [INPUT]=1 [FORWARD]=1 [POSTROUTING]=1)
+mangle=([PREROUTING]=1 [INPUT]=1 [FORWARD]=1 [OUTPUT]=1 [POSTROUTING]=1)
 
 isNewList() {
 	case $1 in
@@ -75,6 +75,7 @@ do
 		isNewList ${table} ${list}
 		if [ $? -eq 0 ]
 		then
+			echo "iptables -t ${table} -X ${list}"
 			iptables -t ${table} -X ${list}
 		fi
 	done
