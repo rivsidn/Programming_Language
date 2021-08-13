@@ -17,7 +17,7 @@ else
 fi
 
 if [ ${ON} -eq 1 ]; then
-	iptables -t nat -A POSTROUTING -s 172.31.3.136 -o ${IF} -j MASQUERADE
+	iptables -t nat -A POSTROUTING -s 172.31.3.0/24 -o ${IF} -j MASQUERADE
 	echo 1 > /proc/sys/net/ipv4/ip_forward
 else
 	iptables -t nat -F
