@@ -3,7 +3,7 @@
 # 出口PC 设置NAT
 # 参数为 on 时开启；其他情况下关闭。
 
-IF=wlp2s0
+IF=bnep0
 
 IP=`ifconfig ${IF} | grep 'inet[^6]' | cut -c 14-24`
 
