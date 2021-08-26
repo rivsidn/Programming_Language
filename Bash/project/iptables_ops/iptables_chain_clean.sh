@@ -55,21 +55,16 @@ isEmpty() {
 }
 
 delChain() {
-	echo "#######"
-	echo $1 $2
-	rule=`iptables-save -t $1 | grep "\-j $2" | cut -b 3-`
-	echo ${rule}
-
 	iptables-save -t $1 | while read line
 	do
-		rule=``
+		rule=`echo ${line} | grep "\-j $2"`
+		if [ ! -z ${rule} ]
+		then
+			ruleDel=`echo ${rule} | cut -b 3-`
+			echo "iptables -D ${ruleDel}"	# 输出打印信息调试
+		fi
 	done
-	iptables -t $1 -X $2
-<<COMMENT
-	echo "iptables -t $1 -D ${rule}"
-	iptables -t $1 -D ${rule}
-	echo "iptables -t $1 -X $2"
-COMMENT
+	echo "iptables -t $1 -X $2"			# 输出调试信息
 }
 
 for table in ${tables}
