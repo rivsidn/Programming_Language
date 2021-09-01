@@ -1,0 +1,9 @@
+main:
+	pushq	%rbp
+	movq	%rsp, %rbp
+1:	call	*mcount@GOTPCREL(%rip)
+	leaq	.LC0(%rip), %rdi
+	call	puts@PLT
+	movl	$0, %eax
+	popq	%rbp
+	ret
