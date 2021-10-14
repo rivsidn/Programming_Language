@@ -1,8 +1,11 @@
 /*
  * 5.0.0-23 编译通过
+ *
+ * 1. proc 函数接口，是如何执行的
+ * 2. 文件系统中几个重要的数据结构
  */
-#include <linux/kernel.h>  
-#include <linux/module.h>  
+#include <linux/kernel.h>
+#include <linux/module.h>
 #include <linux/string.h>
 #include <linux/uaccess.h>
 #include <linux/proc_fs.h>
@@ -12,6 +15,8 @@
 #define PROC_DEMO_FILE1	"file1"
 #define PROC_DEMO_FILE2	"file2"
 
+#define DEBUG
+
 static int value1 = 1;
 static int value2 = 2;
 static struct proc_dir_entry *proc_demo;
@@ -20,12 +25,16 @@ static int proc_test_show(struct seq_file *s, void *offset)
 {
 	void *v = s->private;
 
+#ifdef DEBUG
+	/* 不论在这里返回的是什么返回值，最终到用户态的read() 都只会返回(-1) */
+	return -EINVAL;
+#endif
+
 	if (v == &value1) {
 		seq_printf(s, "%d\n", value1);
 	} else if (v == &value2) {
 		seq_printf(s, "%d\n", value2);
 	} else {
-		/* TODO: 如果失败该如何返回返回值 */
 		seq_printf(s, "nihao\n");
 	}
 
@@ -42,12 +51,15 @@ static ssize_t proc_test_write(struct file *file, const char __user *buffer,
 {
 	int  ret;
 	int  val;
-	char kbuff[256];
+	char kbuff[32];
 	int *pvalue = (int *)((struct seq_file *)file->private_data)->private;
 
 	memset(kbuff, 0, sizeof(kbuff));
 
-	/* TODO: 这里的返回值是否合理，结合用户态write() 来看 */
+	if (count > sizeof(kbuff))
+		return -EINVAL;
+
+	/* 不论在这里返回什么返回值，到用户态都write() 都只是返回(-1) */
 	if (copy_from_user(kbuff, buffer, sizeof(kbuff) > count ? count : sizeof(kbuff)))
 		return -EFAULT;
 
@@ -64,6 +76,7 @@ static ssize_t proc_test_write(struct file *file, const char __user *buffer,
 	return count;
 }
 
+/* 此处这些函数的作用？ */
 static struct file_operations proc_test_ops = {
 	.owner	=	THIS_MODULE,
 	.open	=	proc_test_open,
@@ -83,7 +96,8 @@ static int __init proc_test_init(void)
 		goto out;
 	}
 
-	/* 通过最后的指针指明要访问的数据 */
+	/* 通过最后的指针指明要访问的数据是value1，还是value2 */
+	/* TODO: 这里的实现？ */
 	proc_demo_file1 = proc_create_data(PROC_DEMO_FILE1, 0666, proc_demo, &proc_test_ops, &value1);
 	if (!proc_demo_file1) {
 		goto out1;
