@@ -1,0 +1,7 @@
+#! /bin/bash
+
+dir=`pwd`
+
+echo -n ${dir} | xsel --clipboard
+
+
