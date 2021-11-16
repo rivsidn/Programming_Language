@@ -7,8 +7,7 @@
  * 2. 拼接(##)
  *    直接将内容拼接之后继续做宏展开
  * 3. 宏替换
- *    prescan处理，如下，先将__stringfy(FOO)中展开为 __stringfy(ccc)
- *    之后，在字符串化，展开最终为 "ccc"
+ *    prescan处理，如下，将宏定义依次展开到最后.
  */
 #define __stringify_1(x...)	#x
 #define __stringify(x...)	__stringify_1(x)
