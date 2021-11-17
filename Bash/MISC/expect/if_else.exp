@@ -1,0 +1,11 @@
+#! /usr/local/bin/expect
+
+set STR [lindex $argv 0]
+
+if {${STR} eq ""} {
+	send "1\n"
+} elseif {${STR} eq "1022"} {
+	send "2\n"
+} else {
+	send "3\n"
+}

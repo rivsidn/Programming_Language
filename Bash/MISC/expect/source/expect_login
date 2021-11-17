@@ -1,17 +1,17 @@
-#!/usr/bin/expect
+#!/usr/local/bin/expect
 
 set LOGIN_IP [lindex $argv 0]
 
-spawn zssh -p 1022 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no administrator@$LOGIN_IP
+spawn zssh -p 22 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no administrator@$LOGIN_IP
 
 expect {
   "*password:" {
-    send "passwd\r"
+    send "XXXXXX\r"
   }
   "*Are you sure you want to continue connecting*" {
     send "yes\r"
     expect "*password:" 
-    send "passwd\r"
+    send "XXXXXX\r"
   }
 }
 
@@ -19,9 +19,6 @@ expect "ac>"
 send "switchtodebug\r"
 
 expect "*password:"
-send "passwd\r"
-
-#expect "*>"
-#send "cd /usr/local/web\r"
+send "XXXXXX\r"
 
 interact

@@ -1,0 +1,9 @@
+#! /usr/local/bin/expect
+
+# 获取执行文件名
+set biname $argv0
+set param0 [lindex $argv 0]
+set param1 [lindex $argv 1]
+
+
+send "$biname $param0 $param1\n"

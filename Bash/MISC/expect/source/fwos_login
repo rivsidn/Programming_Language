@@ -1,0 +1,33 @@
+#!/usr/local/bin/expect
+
+set BINAME   $argv0
+set LOGIN_IP [lindex $argv 0]
+set DEV_TYPE [lindex $argv 1]
+
+send "${BINAME}\n"
+
+if {[string match "*new_fwos_login" ${BINAME}]} {
+	set port 1022
+} else {
+	set port 22
+}
+
+spawn zssh -p ${port} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no administrator@$LOGIN_IP
+
+expect "*password:" 
+switch -- ${DEV_TYPE} {
+	{netgap} {
+		send "XXXXXX\r"
+	}
+	default {
+		send "XXXXXX\r"
+	}
+}
+
+expect "ac>"
+send "switchtodebug\r"
+
+expect "*password:"
+send "XXXXXX\r"
+
+interact

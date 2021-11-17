@@ -1,0 +1,10 @@
+#! /usr/local/bin/expect
+
+set STR [lindex $argv 0]
+
+# 字符串匹配，支持正则表达式
+if {[string match "*new" $STR]} {
+	send "match...\n"
+} else {
+	send "not match\n"
+}
