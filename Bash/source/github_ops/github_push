@@ -1,0 +1,45 @@
+#! /bin/bash
+
+PWD=""
+
+if [ ! -z "$1" ]
+then
+	if [ -d "$1" ]
+	then
+		PWD=$1
+	else
+		echo "invalid path"
+		exit 1
+	fi
+else
+	PWD=`pwd`
+fi
+
+pushd ${PWD} > /dev/null
+
+if [ -z "`git status -s`" ]
+then
+	exit 0
+fi
+
+git add *
+
+MSG=`date +"%Y-%m-%d %H:%M:%S"`
+if [ ! -z "$2" ]
+then
+	MSG="$MSG: $2"
+fi
+
+git commit -a -m "$MSG"
+
+echo  "$0"
+if [[ "$0" == *gitee_push ]]
+then
+	echo "gitee"
+	__git_push gitee
+else
+	echo "github"
+	__git_push github
+fi
+
+popd > /dev/null

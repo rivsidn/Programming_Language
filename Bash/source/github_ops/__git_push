@@ -1,0 +1,15 @@
+#! /usr/bin/expect
+
+set OPS [lindex $argv 0]
+
+spawn git push
+expect "Username for 'https://git*.com': "
+send   "rivsidn\r"
+expect "Password for 'https://rivsidn@git*.com': "
+
+if {${OPS} eq "gitee"} {
+	send   "XXXXXXXXXX\r"
+} else {
+	send   "XXXXXXXXXX\r"
+}
+expect eof
