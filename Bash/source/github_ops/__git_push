@@ -2,6 +2,8 @@
 
 set OPS [lindex $argv 0]
 
+#TOOD: 自动区分github, gitee
+
 spawn git push
 expect "Username for 'https://git*.com': "
 send   "rivsidn\r"
