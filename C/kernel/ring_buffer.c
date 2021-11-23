@@ -32,10 +32,46 @@ void func1(void)
 	}
 }
 
+struct list_head {
+	struct list_head *next, *prev;
+};
+struct page_buffer {
+	struct list_head list;
+	unsigned long    l;
+};
+void func2(void)
+{
+	int i;
+	struct page_buffer *t;
+	struct page_buffer  a, b, c;
+	a.l = 1;
+	b.l = 2;
+	c.l = 3;
+
+	a.list.next = &(b.list);
+	a.list.prev = &(c.list);
+	b.list.next = &(c.list);
+	b.list.prev = &(a.list);
+	c.list.next = &(a.list);
+	c.list.prev = &(b.list);
+
+	t = &a;
+	while (t) {
+		printf("%ld\n", t->l);
+		t = (struct page_buffer *)t->list.next;
+
+		if (i++ > 10)
+			break;
+	}
+}
+
 int main()
 {
+#if 0
 	func0();
 	func1();
+#endif
+	func2();
 
 	return 0;
 }
