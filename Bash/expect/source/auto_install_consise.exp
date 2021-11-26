@@ -1,0 +1,10 @@
+#! /usr/bin/expect
+
+spawn make -f Makefile.fw fwos_pilot
+
+expect "*password: "
+send   "XXXXXX\r"
+expect "*password: "
+send   "XXXXXX\r"
+
+expect eof
