@@ -2,19 +2,12 @@
 
 int main()
 {
-	int i, ret;
+	int ret;
 	char buff[6] = {0};
 
-	i = 0;
-	ret = 0;
-	while (i++ < 20) {
-		ret += snprintf(buff+ret, sizeof(buff)-ret-1, "%d", i);
-		printf("%d\n", ret);
-	}
-
-	printf("%s\n", buff);
-
-	printf("debug\n");
+	/* 可以写入的实际有效的内容是 sizeof(buff)-1，snprintf() 中的大小为 sizeof(buff) */
+	ret = snprintf(buff, sizeof(buff), "12345678");
+	printf("%d %s %ld\n", ret, buff, sizeof(buff));
 
 	return 0;
 }
