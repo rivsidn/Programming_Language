@@ -1,5 +1,2 @@
-
-
-all:
-	@echo ${PATH}
-	@echo "${LESSOPEN}"
+bar:
+	@echo "call makefile"
