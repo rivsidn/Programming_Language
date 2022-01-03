@@ -1,4 +1,7 @@
-test_val = nihao
 
 all:
-	@echo ${test_val}
+ifeq ($(TEST_ARG), test)
+	@echo "equal"
+else
+	@echo "not equal"
+endif
