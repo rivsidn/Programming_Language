@@ -1,6 +1,8 @@
 
-include *.mk
+myrule = target : ; @echo built
+
+$(myrule)
 
 all:
-	@echo $(STRING)
+	@echo "all"
 

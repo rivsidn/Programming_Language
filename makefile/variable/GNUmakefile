@@ -1,2 +1,0 @@
-%:
-	@$(MAKE) -f Makefile $@
