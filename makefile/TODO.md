@@ -1,4 +1,4 @@
-* 下次读 `3.9 Secondary Expansion`
+* 下次读 `4.5 Searching Directories for Prerequisites`
 
 
 
@@ -19,6 +19,10 @@
 ```bash
 sed 's/https:\/\/www.gnu.org\/software\/make\/manual\/make.html/file:\/\/\/home\/yuchao\/Downloads\/make\/GNU make.html/g' GNU\ make.html > GNU\ make_changed.html
 ```
+
+
+
+
 
 
 

@@ -1,8 +1,7 @@
+.SECONDEXPANSION:
 
-myrule = target : ; @echo built
+/tmp/foo.o:
 
-$(myrule)
-
-all:
-	@echo "all"
+%.o: $$(addsuffix /%.c,foo bar) foo.h
+	@echo $^
 
