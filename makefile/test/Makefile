@@ -1,7 +1,8 @@
-.SECONDEXPANSION:
 
-/tmp/foo.o:
+ifeq (.config, $(wildcard .config))
+$(info config)
+else
+$(info not config)
+endif
 
-%.o: $$(addsuffix /%.c,foo bar) foo.h
-	@echo $^
-
+all: ;
