@@ -5,7 +5,7 @@
 
 IFS=$'\n'
 
-for file in `find ./ -name "*.epub" -mmin -30`
+for file in `find ./ -maxdepth 1 -name "*.epub" -mmin -30`
 do
 #	echo ${file}
 	name=`echo ${file} | cut -d '.' -f 1`
