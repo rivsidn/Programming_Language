@@ -1,3 +1,14 @@
+## 指令
+
+| 指令                           | 表达意思                                              |
+| ------------------------------ | ----------------------------------------------------- |
+| .cfi_startproc                 | 放在函数开始，做某些初始化动作                        |
+| .cfi_def_cfa_offset offset     | 改变偏移量，寄存器不变，cfa 可以通过寄存器+偏移量获取 |
+| .cfi_offset register, offset   | 寄存器之前的值相对cfa 的位置                          |
+| .cfi_def_cfa_register register | 定义计算cfa的寄存器                                   |
+| .cfi_def_cfa register, offset  | 定义如何获取cfa，寄存器+偏移量                        |
+| .cfi_endproc                   | 结束，写入到.eh_frame                                 |
+
 
 
 ## 示例
@@ -22,15 +33,15 @@ int main()
 	.type	main, @function
 main:
 .LFB0:
-	.cfi_startproc
+	.cfi_startproc				
 	pushq	%rbp				# 保存之前栈基地址
-	.cfi_def_cfa_offset 16
-	.cfi_offset 6, -16
+	.cfi_def_cfa_offset 16			# cfa = %rsp + 16
+	.cfi_offset 6, -16				# cfa - 16 = rbp 之前的值
 	movq	%rsp, %rbp			# 设置当前栈基地址
-	.cfi_def_cfa_register 6
+	.cfi_def_cfa_register 6			# 通过 rbp 来计算 cfa 的值
 	movl	$0, %eax			# 设置返回值
 	popq	%rbp				# 恢复之前的栈基地址
-	.cfi_def_cfa 7, 8
+	.cfi_def_cfa 7, 8				# cfa = %rsp + 8
 	ret							# 返回
 	.cfi_endproc
 .LFE0:
@@ -67,3 +78,4 @@ main:
 ### TODO
 
 * [Smashing The Stack For Fun And Profit](https://insecure.org/stf/smashstack.html)
+
