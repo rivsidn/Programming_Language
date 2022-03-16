@@ -13,6 +13,8 @@ prog = """
 
 BPF_HASH(start, struct request *);
 
+//第一个参数为 ctx
+//第二个参数为 req，为函数的实际参数
 void trace_start(struct pt_regs *ctx, struct request *req) {
     // stash start timestamp by request ptr
     u64 ts = bpf_ktime_get_ns();
