@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+# TODO: 执行该程序的时候，自己写的strlen() 程序获取不到第一个参数
+
 from __future__ import print_function
 from bcc import BPF
 from bcc.utils import printb
