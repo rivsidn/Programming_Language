@@ -1,0 +1,7 @@
+#!/usr/bin/env bpftrace
+
+uretprobe:/bin/bash:readline
+{
+	time("%H:%M:%S  ");
+	printf("%-6d %s\n", pid, str(retval));
+}

@@ -1,0 +1,10 @@
+profile:ms:100
+{
+	@[ustack] = count();
+	@name[comm] = count();
+}
+
+i:s:5
+{
+	exit();
+}
