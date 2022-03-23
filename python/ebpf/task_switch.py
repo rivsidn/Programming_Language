@@ -1,6 +1,8 @@
 from bcc import BPF
 from time import sleep
 
+# TODO: 内核更新之后，该程序不能正常使用了
+
 b= BPF(src_file="task_switch.c")
 b.attach_kprobe(event="finish_task_switch", fn_name="count_sched")
 
