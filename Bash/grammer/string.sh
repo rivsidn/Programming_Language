@@ -7,4 +7,6 @@ else
 	echo "null"
 fi
 
+str="test"
+echo "${str:-0}"
 
