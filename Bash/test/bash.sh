@@ -1,11 +1,12 @@
 #! /bin/bash
 
-exec 4<test_file
+declare -i i=1
 
-for((;;))
-do
-	sleep 1
-	read -u 4 line
-	echo ${line}
-done
+i=i+1
+echo $i
 
+((i++))
+echo $i
+
+let i++
+echo $i
