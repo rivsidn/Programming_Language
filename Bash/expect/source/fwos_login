@@ -12,7 +12,7 @@ if {[string match "*new_fwos_login" ${BINAME}]} {
 	set port 22
 }
 
-spawn zssh -p ${port} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no administrator@$LOGIN_IP
+spawn script -a -f -c "zssh -p ${port} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no administrator@$LOGIN_IP" /tmp/zssh.log
 
 expect "*password:" 
 switch -- ${DEV_TYPE} {
