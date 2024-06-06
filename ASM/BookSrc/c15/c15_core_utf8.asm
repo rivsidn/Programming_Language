@@ -1,41 +1,41 @@
-         ;´úÂëÇåµ¥15-1
-         ;ÎÄ¼þÃû£ºc15_core.asm
-         ;ÎÄ¼þËµÃ÷£º±£»¤Ä£Ê½Î¢ÐÍºËÐÄ³ÌÐò 
-         ;´´½¨ÈÕÆÚ£º2011-11-19 21:40
+         ;代码清单15-1
+         ;文件名：c15_core.asm
+         ;文件说明：保护模式微型核心程序 
+         ;创建日期：2011-11-19 21:40
 
-         ;ÒÔÏÂ³£Á¿¶¨Òå²¿·Ö¡£ÄÚºËµÄ´ó²¿·ÖÄÚÈÝ¶¼Ó¦µ±¹Ì¶¨ 
-         core_code_seg_sel     equ  0x38    ;ÄÚºË´úÂë¶ÎÑ¡Ôñ×Ó
-         core_data_seg_sel     equ  0x30    ;ÄÚºËÊý¾Ý¶ÎÑ¡Ôñ×Ó 
-         sys_routine_seg_sel   equ  0x28    ;ÏµÍ³¹«¹²Àý³Ì´úÂë¶ÎµÄÑ¡Ôñ×Ó 
-         video_ram_seg_sel     equ  0x20    ;ÊÓÆµÏÔÊ¾»º³åÇøµÄ¶ÎÑ¡Ôñ×Ó
-         core_stack_seg_sel    equ  0x18    ;ÄÚºË¶ÑÕ»¶ÎÑ¡Ôñ×Ó
-         mem_0_4_gb_seg_sel    equ  0x08    ;Õû¸ö0-4GBÄÚ´æµÄ¶ÎµÄÑ¡Ôñ×Ó
+         ;以下常量定义部分。内核的大部分内容都应当固定 
+         core_code_seg_sel     equ  0x38    ;内核代码段选择子
+         core_data_seg_sel     equ  0x30    ;内核数据段选择子 
+         sys_routine_seg_sel   equ  0x28    ;系统公共例程代码段的选择子 
+         video_ram_seg_sel     equ  0x20    ;视频显示缓冲区的段选择子
+         core_stack_seg_sel    equ  0x18    ;内核堆栈段选择子
+         mem_0_4_gb_seg_sel    equ  0x08    ;整个0-4GB内存的段的选择子
 
 ;-------------------------------------------------------------------------------
-         ;ÒÔÏÂÊÇÏµÍ³ºËÐÄµÄÍ·²¿£¬ÓÃÓÚ¼ÓÔØºËÐÄ³ÌÐò 
-         core_length      dd core_end       ;ºËÐÄ³ÌÐò×Ü³¤¶È#00
+         ;以下是系统核心的头部，用于加载核心程序 
+         core_length      dd core_end       ;核心程序总长度#00
 
          sys_routine_seg  dd section.sys_routine.start
-                                            ;ÏµÍ³¹«ÓÃÀý³Ì¶ÎÎ»ÖÃ#04
+                                            ;系统公用例程段位置#04
 
          core_data_seg    dd section.core_data.start
-                                            ;ºËÐÄÊý¾Ý¶ÎÎ»ÖÃ#08
+                                            ;核心数据段位置#08
 
          core_code_seg    dd section.core_code.start
-                                            ;ºËÐÄ´úÂë¶ÎÎ»ÖÃ#0c
+                                            ;核心代码段位置#0c
 
 
-         core_entry       dd start          ;ºËÐÄ´úÂë¶ÎÈë¿Úµã#10
+         core_entry       dd start          ;核心代码段入口点#10
                           dw core_code_seg_sel
 
 ;===============================================================================
          [bits 32]
 ;===============================================================================
-SECTION sys_routine vstart=0                ;ÏµÍ³¹«¹²Àý³Ì´úÂë¶Î 
+SECTION sys_routine vstart=0                ;系统公共例程代码段 
 ;-------------------------------------------------------------------------------
-         ;×Ö·û´®ÏÔÊ¾Àý³Ì
-put_string:                                 ;ÏÔÊ¾0ÖÕÖ¹µÄ×Ö·û´®²¢ÒÆ¶¯¹â±ê 
-                                            ;ÊäÈë£ºDS:EBX=´®µØÖ·
+         ;字符串显示例程
+put_string:                                 ;显示0终止的字符串并移动光标 
+                                            ;输入：DS:EBX=串地址
          push ecx
   .getc:
          mov cl,[ebx]
@@ -47,30 +47,30 @@ put_string:                                 ;ÏÔÊ¾0ÖÕÖ¹µÄ×Ö·û´®²
 
   .exit:
          pop ecx
-         retf                               ;¶Î¼ä·µ»Ø
+         retf                               ;段间返回
 
 ;-------------------------------------------------------------------------------
-put_char:                                   ;ÔÚµ±Ç°¹â±ê´¦ÏÔÊ¾Ò»¸ö×Ö·û,²¢ÍÆ½ø
-                                            ;¹â±ê¡£½öÓÃÓÚ¶ÎÄÚµ÷ÓÃ 
-                                            ;ÊäÈë£ºCL=×Ö·ûASCIIÂë 
+put_char:                                   ;在当前光标处显示一个字符,并推进
+                                            ;光标。仅用于段内调用 
+                                            ;输入：CL=字符ASCII码 
          pushad
 
-         ;ÒÔÏÂÈ¡µ±Ç°¹â±êÎ»ÖÃ
+         ;以下取当前光标位置
          mov dx,0x3d4
          mov al,0x0e
          out dx,al
          inc dx                             ;0x3d5
-         in al,dx                           ;¸ß×Ö
+         in al,dx                           ;高字
          mov ah,al
 
          dec dx                             ;0x3d4
          mov al,0x0f
          out dx,al
          inc dx                             ;0x3d5
-         in al,dx                           ;µÍ×Ö
-         mov bx,ax                          ;BX=´ú±í¹â±êÎ»ÖÃµÄ16Î»Êý
+         in al,dx                           ;低字
+         mov bx,ax                          ;BX=代表光标位置的16位数
 
-         cmp cl,0x0d                        ;»Ø³µ·û£¿
+         cmp cl,0x0d                        ;回车符？
          jnz .put_0a
          mov ax,bx
          mov bl,80
@@ -80,25 +80,25 @@ put_char:                                   ;ÔÚµ±Ç°¹â±ê´¦ÏÔÊ¾Ò�
          jmp .set_cursor
 
   .put_0a:
-         cmp cl,0x0a                        ;»»ÐÐ·û£¿
+         cmp cl,0x0a                        ;换行符？
          jnz .put_other
          add bx,80
          jmp .roll_screen
 
-  .put_other:                               ;Õý³£ÏÔÊ¾×Ö·û
+  .put_other:                               ;正常显示字符
          push es
-         mov eax,video_ram_seg_sel          ;0xb8000¶ÎµÄÑ¡Ôñ×Ó
+         mov eax,video_ram_seg_sel          ;0xb8000段的选择子
          mov es,eax
          shl bx,1
          mov [es:bx],cl
          pop es
 
-         ;ÒÔÏÂ½«¹â±êÎ»ÖÃÍÆ½øÒ»¸ö×Ö·û
+         ;以下将光标位置推进一个字符
          shr bx,1
          inc bx
 
   .roll_screen:
-         cmp bx,2000                        ;¹â±ê³¬³öÆÁÄ»£¿¹öÆÁ
+         cmp bx,2000                        ;光标超出屏幕？滚屏
          jl .set_cursor
 
          push ds
@@ -107,12 +107,12 @@ put_char:                                   ;ÔÚµ±Ç°¹â±ê´¦ÏÔÊ¾Ò�
          mov ds,eax
          mov es,eax
          cld
-         mov esi,0xa0                       ;Ð¡ÐÄ£¡32Î»Ä£Ê½ÏÂmovsb/w/d 
-         mov edi,0x00                       ;Ê¹ÓÃµÄÊÇesi/edi/ecx 
+         mov esi,0xa0                       ;小心！32位模式下movsb/w/d 
+         mov edi,0x00                       ;使用的是esi/edi/ecx 
          mov ecx,1920
          rep movsd
-         mov bx,3840                        ;Çå³ýÆÁÄ»×îµ×Ò»ÐÐ
-         mov ecx,80                         ;32Î»³ÌÐòÓ¦¸ÃÊ¹ÓÃECX
+         mov bx,3840                        ;清除屏幕最底一行
+         mov ecx,80                         ;32位程序应该使用ECX
   .cls:
          mov word[es:bx],0x0720
          add bx,2
@@ -142,10 +142,10 @@ put_char:                                   ;ÔÚµ±Ç°¹â±ê´¦ÏÔÊ¾Ò�
          ret                                
 
 ;-------------------------------------------------------------------------------
-read_hard_disk_0:                           ;´ÓÓ²ÅÌ¶ÁÈ¡Ò»¸öÂß¼­ÉÈÇø
-                                            ;EAX=Âß¼­ÉÈÇøºÅ
-                                            ;DS:EBX=Ä¿±ê»º³åÇøµØÖ·
-                                            ;·µ»Ø£ºEBX=EBX+512
+read_hard_disk_0:                           ;从硬盘读取一个逻辑扇区
+                                            ;EAX=逻辑扇区号
+                                            ;DS:EBX=目标缓冲区地址
+                                            ;返回：EBX=EBX+512
          push eax 
          push ecx
          push edx
@@ -154,37 +154,37 @@ read_hard_disk_0:                           ;´ÓÓ²ÅÌ¶ÁÈ¡Ò»¸öÂß¼�
          
          mov dx,0x1f2
          mov al,1
-         out dx,al                          ;¶ÁÈ¡µÄÉÈÇøÊý
+         out dx,al                          ;读取的扇区数
 
          inc dx                             ;0x1f3
          pop eax
-         out dx,al                          ;LBAµØÖ·7~0
+         out dx,al                          ;LBA地址7~0
 
          inc dx                             ;0x1f4
          mov cl,8
          shr eax,cl
-         out dx,al                          ;LBAµØÖ·15~8
+         out dx,al                          ;LBA地址15~8
 
          inc dx                             ;0x1f5
          shr eax,cl
-         out dx,al                          ;LBAµØÖ·23~16
+         out dx,al                          ;LBA地址23~16
 
          inc dx                             ;0x1f6
          shr eax,cl
-         or al,0xe0                         ;µÚÒ»Ó²ÅÌ  LBAµØÖ·27~24
+         or al,0xe0                         ;第一硬盘  LBA地址27~24
          out dx,al
 
          inc dx                             ;0x1f7
-         mov al,0x20                        ;¶ÁÃüÁî
+         mov al,0x20                        ;读命令
          out dx,al
 
   .waits:
          in al,dx
          and al,0x88
          cmp al,0x08
-         jnz .waits                         ;²»Ã¦£¬ÇÒÓ²ÅÌÒÑ×¼±¸ºÃÊý¾Ý´«Êä 
+         jnz .waits                         ;不忙，且硬盘已准备好数据传输 
 
-         mov ecx,256                        ;×Ü¹²Òª¶ÁÈ¡µÄ×ÖÊý
+         mov ecx,256                        ;总共要读取的字数
          mov dx,0x1f0
   .readw:
          in ax,dx
@@ -196,21 +196,21 @@ read_hard_disk_0:                           ;´ÓÓ²ÅÌ¶ÁÈ¡Ò»¸öÂß¼�
          pop ecx
          pop eax
       
-         retf                               ;¶Î¼ä·µ»Ø 
+         retf                               ;段间返回 
 
 ;-------------------------------------------------------------------------------
-;»ã±àÓïÑÔ³ÌÐòÊÇ¼«ÄÑÒ»´Î³É¹¦£¬¶øÇÒµ÷ÊÔ·Ç³£À§ÄÑ¡£Õâ¸öÀý³Ì¿ÉÒÔÌá¹©°ïÖú 
-put_hex_dword:                              ;ÔÚµ±Ç°¹â±ê´¦ÒÔÊ®Áù½øÖÆÐÎÊ½ÏÔÊ¾
-                                            ;Ò»¸öË«×Ö²¢ÍÆ½ø¹â±ê 
-                                            ;ÊäÈë£ºEDX=Òª×ª»»²¢ÏÔÊ¾µÄÊý×Ö
-                                            ;Êä³ö£ºÎÞ
+;汇编语言程序是极难一次成功，而且调试非常困难。这个例程可以提供帮助 
+put_hex_dword:                              ;在当前光标处以十六进制形式显示
+                                            ;一个双字并推进光标 
+                                            ;输入：EDX=要转换并显示的数字
+                                            ;输出：无
          pushad
          push ds
       
-         mov ax,core_data_seg_sel           ;ÇÐ»»µ½ºËÐÄÊý¾Ý¶Î 
+         mov ax,core_data_seg_sel           ;切换到核心数据段 
          mov ds,ax
       
-         mov ebx,bin_hex                    ;Ö¸ÏòºËÐÄÊý¾Ý¶ÎÄÚµÄ×ª»»±í
+         mov ebx,bin_hex                    ;指向核心数据段内的转换表
          mov ecx,8
   .xlt:    
          rol edx,4
@@ -230,9 +230,9 @@ put_hex_dword:                              ;ÔÚµ±Ç°¹â±ê´¦ÒÔÊ®Á�
          retf
       
 ;-------------------------------------------------------------------------------
-allocate_memory:                            ;·ÖÅäÄÚ´æ
-                                            ;ÊäÈë£ºECX=Ï£Íû·ÖÅäµÄ×Ö½ÚÊý
-                                            ;Êä³ö£ºECX=ÆðÊ¼ÏßÐÔµØÖ· 
+allocate_memory:                            ;分配内存
+                                            ;输入：ECX=希望分配的字节数
+                                            ;输出：ECX=起始线性地址 
          push ds
          push eax
          push ebx
@@ -241,19 +241,19 @@ allocate_memory:                            ;·ÖÅäÄÚ´æ
          mov ds,eax
       
          mov eax,[ram_alloc]
-         add eax,ecx                        ;ÏÂÒ»´Î·ÖÅäÊ±µÄÆðÊ¼µØÖ·
+         add eax,ecx                        ;下一次分配时的起始地址
       
-         ;ÕâÀïÓ¦µ±ÓÐ¼ì²â¿ÉÓÃÄÚ´æÊýÁ¿µÄÖ¸Áî
+         ;这里应当有检测可用内存数量的指令
           
-         mov ecx,[ram_alloc]                ;·µ»Ø·ÖÅäµÄÆðÊ¼µØÖ·
+         mov ecx,[ram_alloc]                ;返回分配的起始地址
 
          mov ebx,eax
          and ebx,0xfffffffc
-         add ebx,4                          ;Ç¿ÖÆ¶ÔÆë 
-         test eax,0x00000003                ;ÏÂ´Î·ÖÅäµÄÆðÊ¼µØÖ·×îºÃÊÇ4×Ö½Ú¶ÔÆë
-         cmovnz eax,ebx                     ;Èç¹ûÃ»ÓÐ¶ÔÆë£¬ÔòÇ¿ÖÆ¶ÔÆë 
-         mov [ram_alloc],eax                ;ÏÂ´Î´Ó¸ÃµØÖ··ÖÅäÄÚ´æ
-                                            ;cmovccÖ¸Áî¿ÉÒÔ±ÜÃâ¿ØÖÆ×ªÒÆ 
+         add ebx,4                          ;强制对齐 
+         test eax,0x00000003                ;下次分配的起始地址最好是4字节对齐
+         cmovnz eax,ebx                     ;如果没有对齐，则强制对齐 
+         mov [ram_alloc],eax                ;下次从该地址分配内存
+                                            ;cmovcc指令可以避免控制转移 
          pop ebx
          pop eax
          pop ds
@@ -261,9 +261,9 @@ allocate_memory:                            ;·ÖÅäÄÚ´æ
          retf
 
 ;-------------------------------------------------------------------------------
-set_up_gdt_descriptor:                      ;ÔÚGDTÄÚ°²×°Ò»¸öÐÂµÄÃèÊö·û
-                                            ;ÊäÈë£ºEDX:EAX=ÃèÊö·û 
-                                            ;Êä³ö£ºCX=ÃèÊö·ûµÄÑ¡Ôñ×Ó
+set_up_gdt_descriptor:                      ;在GDT内安装一个新的描述符
+                                            ;输入：EDX:EAX=描述符 
+                                            ;输出：CX=描述符的选择子
          push eax
          push ebx
          push edx
@@ -271,31 +271,31 @@ set_up_gdt_descriptor:                      ;ÔÚGDTÄÚ°²×°Ò»¸öÐÂµÄ
          push ds
          push es
 
-         mov ebx,core_data_seg_sel          ;ÇÐ»»µ½ºËÐÄÊý¾Ý¶Î
+         mov ebx,core_data_seg_sel          ;切换到核心数据段
          mov ds,ebx
 
-         sgdt [pgdt]                        ;ÒÔ±ã¿ªÊ¼´¦ÀíGDT
+         sgdt [pgdt]                        ;以便开始处理GDT
 
          mov ebx,mem_0_4_gb_seg_sel
          mov es,ebx
 
-         movzx ebx,word [pgdt]              ;GDT½çÏÞ
-         inc bx                             ;GDT×Ü×Ö½ÚÊý£¬Ò²ÊÇÏÂÒ»¸öÃèÊö·ûÆ«ÒÆ
-         add ebx,[pgdt+2]                   ;ÏÂÒ»¸öÃèÊö·ûµÄÏßÐÔµØÖ·
+         movzx ebx,word [pgdt]              ;GDT界限
+         inc bx                             ;GDT总字节数，也是下一个描述符偏移
+         add ebx,[pgdt+2]                   ;下一个描述符的线性地址
 
          mov [es:ebx],eax
          mov [es:ebx+4],edx
 
-         add word [pgdt],8                  ;Ôö¼ÓÒ»¸öÃèÊö·ûµÄ´óÐ¡
+         add word [pgdt],8                  ;增加一个描述符的大小
 
-         lgdt [pgdt]                        ;¶ÔGDTµÄ¸ü¸ÄÉúÐ§
+         lgdt [pgdt]                        ;对GDT的更改生效
 
-         mov ax,[pgdt]                      ;µÃµ½GDT½çÏÞÖµ
+         mov ax,[pgdt]                      ;得到GDT界限值
          xor dx,dx
          mov bx,8
-         div bx                             ;³ýÒÔ8£¬È¥µôÓàÊý
+         div bx                             ;除以8，去掉余数
          mov cx,ax
-         shl cx,3                           ;½«Ë÷ÒýºÅÒÆµ½ÕýÈ·Î»ÖÃ
+         shl cx,3                           ;将索引号移到正确位置
 
          pop es
          pop ds
@@ -306,44 +306,44 @@ set_up_gdt_descriptor:                      ;ÔÚGDTÄÚ°²×°Ò»¸öÐÂµÄ
 
          retf
 ;-------------------------------------------------------------------------------
-make_seg_descriptor:                        ;¹¹Ôì´æ´¢Æ÷ºÍÏµÍ³µÄ¶ÎÃèÊö·û
-                                            ;ÊäÈë£ºEAX=ÏßÐÔ»ùµØÖ·
-                                            ;      EBX=¶Î½çÏÞ
-                                            ;      ECX=ÊôÐÔ¡£¸÷ÊôÐÔÎ»¶¼ÔÚÔ­Ê¼
-                                            ;          Î»ÖÃ£¬ÎÞ¹ØµÄÎ»ÇåÁã 
-                                            ;·µ»Ø£ºEDX:EAX=ÃèÊö·û
+make_seg_descriptor:                        ;构造存储器和系统的段描述符
+                                            ;输入：EAX=线性基地址
+                                            ;      EBX=段界限
+                                            ;      ECX=属性。各属性位都在原始
+                                            ;          位置，无关的位清零 
+                                            ;返回：EDX:EAX=描述符
          mov edx,eax
          shl eax,16
-         or ax,bx                           ;ÃèÊö·ûÇ°32Î»(EAX)¹¹ÔìÍê±Ï
+         or ax,bx                           ;描述符前32位(EAX)构造完毕
 
-         and edx,0xffff0000                 ;Çå³ý»ùµØÖ·ÖÐÎÞ¹ØµÄÎ»
+         and edx,0xffff0000                 ;清除基地址中无关的位
          rol edx,8
-         bswap edx                          ;×°Åä»ùÖ·µÄ31~24ºÍ23~16  (80486+)
+         bswap edx                          ;装配基址的31~24和23~16  (80486+)
 
          xor bx,bx
-         or edx,ebx                         ;×°Åä¶Î½çÏÞµÄ¸ß4Î»
+         or edx,ebx                         ;装配段界限的高4位
 
-         or edx,ecx                         ;×°ÅäÊôÐÔ
+         or edx,ecx                         ;装配属性
 
          retf
 
 ;-------------------------------------------------------------------------------
-make_gate_descriptor:                       ;¹¹ÔìÃÅµÄÃèÊö·û£¨µ÷ÓÃÃÅµÈ£©
-                                            ;ÊäÈë£ºEAX=ÃÅ´úÂëÔÚ¶ÎÄÚÆ«ÒÆµØÖ·
-                                            ;       BX=ÃÅ´úÂëËùÔÚ¶ÎµÄÑ¡Ôñ×Ó 
-                                            ;       CX=¶ÎÀàÐÍ¼°ÊôÐÔµÈ£¨¸÷Êô
-                                            ;          ÐÔÎ»¶¼ÔÚÔ­Ê¼Î»ÖÃ£©
-                                            ;·µ»Ø£ºEDX:EAX=ÍêÕûµÄÃèÊö·û
+make_gate_descriptor:                       ;构造门的描述符（调用门等）
+                                            ;输入：EAX=门代码在段内偏移地址
+                                            ;       BX=门代码所在段的选择子 
+                                            ;       CX=段类型及属性等（各属
+                                            ;          性位都在原始位置）
+                                            ;返回：EDX:EAX=完整的描述符
          push ebx
          push ecx
       
          mov edx,eax
-         and edx,0xffff0000                 ;µÃµ½Æ«ÒÆµØÖ·¸ß16Î» 
-         or dx,cx                           ;×é×°ÊôÐÔ²¿·Öµ½EDX
+         and edx,0xffff0000                 ;得到偏移地址高16位 
+         or dx,cx                           ;组装属性部分到EDX
        
-         and eax,0x0000ffff                 ;µÃµ½Æ«ÒÆµØÖ·µÍ16Î» 
+         and eax,0x0000ffff                 ;得到偏移地址低16位 
          shl ebx,16                          
-         or eax,ebx                         ;×é×°¶ÎÑ¡Ôñ×Ó²¿·Ö
+         or eax,ebx                         ;组装段选择子部分
       
          pop ecx
          pop ebx
@@ -351,22 +351,22 @@ make_gate_descriptor:                       ;¹¹ÔìÃÅµÄÃèÊö·û£¨µ�
          retf                                   
                              
 ;-------------------------------------------------------------------------------
-terminate_current_task:                     ;ÖÕÖ¹µ±Ç°ÈÎÎñ
-                                            ;×¢Òâ£¬Ö´ÐÐ´ËÀý³ÌÊ±£¬µ±Ç°ÈÎÎñÈÔÔÚ
-                                            ;ÔËÐÐÖÐ¡£´ËÀý³ÌÆäÊµÒ²ÊÇµ±Ç°ÈÎÎñµÄ
-                                            ;Ò»²¿·Ö 
+terminate_current_task:                     ;终止当前任务
+                                            ;注意，执行此例程时，当前任务仍在
+                                            ;运行中。此例程其实也是当前任务的
+                                            ;一部分 
          pushfd
-         mov edx,[esp]                      ;»ñµÃEFLAGS¼Ä´æÆ÷ÄÚÈÝ
-         add esp,4                          ;»Ö¸´¶ÑÕ»Ö¸Õë
+         mov edx,[esp]                      ;获得EFLAGS寄存器内容
+         add esp,4                          ;恢复堆栈指针
 
          mov eax,core_data_seg_sel
          mov ds,eax
 
-         test dx,0100_0000_0000_0000B       ;²âÊÔNTÎ»
-         jnz .b1                            ;µ±Ç°ÈÎÎñÊÇÇ¶Ì×µÄ£¬µ½.b1Ö´ÐÐiretd 
-         mov ebx,core_msg1                  ;µ±Ç°ÈÎÎñ²»ÊÇÇ¶Ì×µÄ£¬Ö±½ÓÇÐ»»µ½ 
+         test dx,0100_0000_0000_0000B       ;测试NT位
+         jnz .b1                            ;当前任务是嵌套的，到.b1执行iretd 
+         mov ebx,core_msg1                  ;当前任务不是嵌套的，直接切换到 
          call sys_routine_seg_sel:put_string
-         jmp far [prgman_tss]               ;³ÌÐò¹ÜÀíÆ÷ÈÎÎñ 
+         jmp far [prgman_tss]               ;程序管理器任务 
        
   .b1: 
          mov ebx,core_msg0
@@ -376,14 +376,14 @@ terminate_current_task:                     ;ÖÕÖ¹µ±Ç°ÈÎÎñ
 sys_routine_end:
 
 ;===============================================================================
-SECTION core_data vstart=0                  ;ÏµÍ³ºËÐÄµÄÊý¾Ý¶Î 
+SECTION core_data vstart=0                  ;系统核心的数据段 
 ;------------------------------------------------------------------------------- 
-         pgdt             dw  0             ;ÓÃÓÚÉèÖÃºÍÐÞ¸ÄGDT 
+         pgdt             dw  0             ;用于设置和修改GDT 
                           dd  0
 
-         ram_alloc        dd  0x00100000    ;ÏÂ´Î·ÖÅäÄÚ´æÊ±µÄÆðÊ¼µØÖ·
+         ram_alloc        dd  0x00100000    ;下次分配内存时的起始地址
 
-         ;·ûºÅµØÖ·¼ìË÷±í
+         ;符号地址检索表
          salt:
          salt_1           db  '@PrintString'
                      times 256-($-salt_1) db 0
@@ -416,20 +416,20 @@ SECTION core_data vstart=0                  ;ÏµÍ³ºËÐÄµÄÊý¾Ý¶Î
          message_2        db  '  System wide CALL-GATE mounted.',0x0d,0x0a,0
          
          bin_hex          db '0123456789ABCDEF'
-                                            ;put_hex_dword×Ó¹ý³ÌÓÃµÄ²éÕÒ±í 
+                                            ;put_hex_dword子过程用的查找表 
 
-         core_buf   times 2048 db 0         ;ÄÚºËÓÃµÄ»º³åÇø
+         core_buf   times 2048 db 0         ;内核用的缓冲区
 
          cpu_brnd0        db 0x0d,0x0a,'  ',0
          cpu_brand  times 52 db 0
          cpu_brnd1        db 0x0d,0x0a,0x0d,0x0a,0
 
-         ;ÈÎÎñ¿ØÖÆ¿éÁ´
+         ;任务控制块链
          tcb_chain        dd  0
 
-         ;³ÌÐò¹ÜÀíÆ÷µÄÈÎÎñÐÅÏ¢ 
-         prgman_tss       dd  0             ;³ÌÐò¹ÜÀíÆ÷µÄTSS»ùµØÖ·
-                          dw  0             ;³ÌÐò¹ÜÀíÆ÷µÄTSSÃèÊö·ûÑ¡Ôñ×Ó 
+         ;程序管理器的任务信息 
+         prgman_tss       dd  0             ;程序管理器的TSS基地址
+                          dw  0             ;程序管理器的TSS描述符选择子 
 
          prgman_msg1      db  0x0d,0x0a
                           db  '[PROGRAM MANAGER]: Hello! I am Program Manager,'
@@ -462,10 +462,10 @@ core_data_end:
 ;===============================================================================
 SECTION core_code vstart=0
 ;-------------------------------------------------------------------------------
-fill_descriptor_in_ldt:                     ;ÔÚLDTÄÚ°²×°Ò»¸öÐÂµÄÃèÊö·û
-                                            ;ÊäÈë£ºEDX:EAX=ÃèÊö·û
-                                            ;          EBX=TCB»ùµØÖ·
-                                            ;Êä³ö£ºCX=ÃèÊö·ûµÄÑ¡Ôñ×Ó
+fill_descriptor_in_ldt:                     ;在LDT内安装一个新的描述符
+                                            ;输入：EDX:EAX=描述符
+                                            ;          EBX=TCB基地址
+                                            ;输出：CX=描述符的选择子
          push eax
          push edx
          push edi
@@ -474,19 +474,19 @@ fill_descriptor_in_ldt:                     ;ÔÚLDTÄÚ°²×°Ò»¸öÐÂµÄ
          mov ecx,mem_0_4_gb_seg_sel
          mov ds,ecx
 
-         mov edi,[ebx+0x0c]                 ;»ñµÃLDT»ùµØÖ·
+         mov edi,[ebx+0x0c]                 ;获得LDT基地址
          
          xor ecx,ecx
-         mov cx,[ebx+0x0a]                  ;»ñµÃLDT½çÏÞ
-         inc cx                             ;LDTµÄ×Ü×Ö½ÚÊý£¬¼´ÐÂÃèÊö·ûÆ«ÒÆµØÖ·
+         mov cx,[ebx+0x0a]                  ;获得LDT界限
+         inc cx                             ;LDT的总字节数，即新描述符偏移地址
          
          mov [edi+ecx+0x00],eax
-         mov [edi+ecx+0x04],edx             ;°²×°ÃèÊö·û
+         mov [edi+ecx+0x04],edx             ;安装描述符
 
          add cx,8                           
-         dec cx                             ;µÃµ½ÐÂµÄLDT½çÏÞÖµ 
+         dec cx                             ;得到新的LDT界限值 
 
-         mov [ebx+0x0a],cx                  ;¸üÐÂLDT½çÏÞÖµµ½TCB
+         mov [ebx+0x0a],cx                  ;更新LDT界限值到TCB
 
          mov ax,cx
          xor dx,dx
@@ -494,8 +494,8 @@ fill_descriptor_in_ldt:                     ;ÔÚLDTÄÚ°²×°Ò»¸öÐÂµÄ
          div cx
          
          mov cx,ax
-         shl cx,3                           ;×óÒÆ3Î»£¬²¢ÇÒ
-         or cx,0000_0000_0000_0100B         ;Ê¹TIÎ»=1£¬Ö¸ÏòLDT£¬×îºóÊ¹RPL=00 
+         shl cx,3                           ;左移3位，并且
+         or cx,0000_0000_0000_0100B         ;使TI位=1，指向LDT，最后使RPL=00 
 
          pop ds
          pop edi
@@ -505,131 +505,131 @@ fill_descriptor_in_ldt:                     ;ÔÚLDTÄÚ°²×°Ò»¸öÐÂµÄ
          ret
          
 ;------------------------------------------------------------------------------- 
-load_relocate_program:                      ;¼ÓÔØ²¢ÖØ¶¨Î»ÓÃ»§³ÌÐò
-                                            ;ÊäÈë: PUSH Âß¼­ÉÈÇøºÅ
-                                            ;      PUSH ÈÎÎñ¿ØÖÆ¿é»ùµØÖ·
-                                            ;Êä³ö£ºÎÞ 
+load_relocate_program:                      ;加载并重定位用户程序
+                                            ;输入: PUSH 逻辑扇区号
+                                            ;      PUSH 任务控制块基地址
+                                            ;输出：无 
          pushad
       
          push ds
          push es
       
-         mov ebp,esp                        ;Îª·ÃÎÊÍ¨¹ý¶ÑÕ»´«µÝµÄ²ÎÊý×ö×¼±¸
+         mov ebp,esp                        ;为访问通过堆栈传递的参数做准备
       
          mov ecx,mem_0_4_gb_seg_sel
          mov es,ecx
       
-         mov esi,[ebp+11*4]                 ;´Ó¶ÑÕ»ÖÐÈ¡µÃTCBµÄ»ùµØÖ·
+         mov esi,[ebp+11*4]                 ;从堆栈中取得TCB的基地址
 
-         ;ÒÔÏÂÉêÇë´´½¨LDTËùÐèÒªµÄÄÚ´æ
-         mov ecx,160                        ;ÔÊÐí°²×°20¸öLDTÃèÊö·û
+         ;以下申请创建LDT所需要的内存
+         mov ecx,160                        ;允许安装20个LDT描述符
          call sys_routine_seg_sel:allocate_memory
-         mov [es:esi+0x0c],ecx              ;µÇ¼ÇLDT»ùµØÖ·µ½TCBÖÐ
-         mov word [es:esi+0x0a],0xffff      ;µÇ¼ÇLDT³õÊ¼µÄ½çÏÞµ½TCBÖÐ 
+         mov [es:esi+0x0c],ecx              ;登记LDT基地址到TCB中
+         mov word [es:esi+0x0a],0xffff      ;登记LDT初始的界限到TCB中 
 
-         ;ÒÔÏÂ¿ªÊ¼¼ÓÔØÓÃ»§³ÌÐò 
+         ;以下开始加载用户程序 
          mov eax,core_data_seg_sel
-         mov ds,eax                         ;ÇÐ»»DSµ½ÄÚºËÊý¾Ý¶Î
+         mov ds,eax                         ;切换DS到内核数据段
        
-         mov eax,[ebp+12*4]                 ;´Ó¶ÑÕ»ÖÐÈ¡³öÓÃ»§³ÌÐòÆðÊ¼ÉÈÇøºÅ 
-         mov ebx,core_buf                   ;¶ÁÈ¡³ÌÐòÍ·²¿Êý¾Ý     
+         mov eax,[ebp+12*4]                 ;从堆栈中取出用户程序起始扇区号 
+         mov ebx,core_buf                   ;读取程序头部数据     
          call sys_routine_seg_sel:read_hard_disk_0
 
-         ;ÒÔÏÂÅÐ¶ÏÕû¸ö³ÌÐòÓÐ¶à´ó
-         mov eax,[core_buf]                 ;³ÌÐò³ß´ç
+         ;以下判断整个程序有多大
+         mov eax,[core_buf]                 ;程序尺寸
          mov ebx,eax
-         and ebx,0xfffffe00                 ;Ê¹Ö®512×Ö½Ú¶ÔÆë£¨ÄÜ±»512Õû³ýµÄÊýµÍ 
-         add ebx,512                        ;9Î»¶¼Îª0 
-         test eax,0x000001ff                ;³ÌÐòµÄ´óÐ¡ÕýºÃÊÇ512µÄ±¶ÊýÂð? 
-         cmovnz eax,ebx                     ;²»ÊÇ¡£Ê¹ÓÃ´ÕÕûµÄ½á¹û
+         and ebx,0xfffffe00                 ;使之512字节对齐（能被512整除的数低 
+         add ebx,512                        ;9位都为0 
+         test eax,0x000001ff                ;程序的大小正好是512的倍数吗? 
+         cmovnz eax,ebx                     ;不是。使用凑整的结果
       
-         mov ecx,eax                        ;Êµ¼ÊÐèÒªÉêÇëµÄÄÚ´æÊýÁ¿
+         mov ecx,eax                        ;实际需要申请的内存数量
          call sys_routine_seg_sel:allocate_memory
-         mov [es:esi+0x06],ecx              ;µÇ¼Ç³ÌÐò¼ÓÔØ»ùµØÖ·µ½TCBÖÐ
+         mov [es:esi+0x06],ecx              ;登记程序加载基地址到TCB中
       
-         mov ebx,ecx                        ;ebx -> ÉêÇëµ½µÄÄÚ´æÊ×µØÖ·
+         mov ebx,ecx                        ;ebx -> 申请到的内存首地址
          xor edx,edx
          mov ecx,512
          div ecx
-         mov ecx,eax                        ;×ÜÉÈÇøÊý 
+         mov ecx,eax                        ;总扇区数 
       
-         mov eax,mem_0_4_gb_seg_sel         ;ÇÐ»»DSµ½0-4GBµÄ¶Î
+         mov eax,mem_0_4_gb_seg_sel         ;切换DS到0-4GB的段
          mov ds,eax
 
-         mov eax,[ebp+12*4]                 ;ÆðÊ¼ÉÈÇøºÅ 
+         mov eax,[ebp+12*4]                 ;起始扇区号 
   .b1:
          call sys_routine_seg_sel:read_hard_disk_0
          inc eax
-         loop .b1                           ;Ñ­»·¶Á£¬Ö±µ½¶ÁÍêÕû¸öÓÃ»§³ÌÐò
+         loop .b1                           ;循环读，直到读完整个用户程序
 
-         mov edi,[es:esi+0x06]              ;»ñµÃ³ÌÐò¼ÓÔØ»ùµØÖ·
+         mov edi,[es:esi+0x06]              ;获得程序加载基地址
 
-         ;½¨Á¢³ÌÐòÍ·²¿¶ÎÃèÊö·û
-         mov eax,edi                        ;³ÌÐòÍ·²¿ÆðÊ¼ÏßÐÔµØÖ·
-         mov ebx,[edi+0x04]                 ;¶Î³¤¶È
-         dec ebx                            ;¶Î½çÏÞ
-         mov ecx,0x0040f200                 ;×Ö½ÚÁ£¶ÈµÄÊý¾Ý¶ÎÃèÊö·û£¬ÌØÈ¨¼¶3 
+         ;建立程序头部段描述符
+         mov eax,edi                        ;程序头部起始线性地址
+         mov ebx,[edi+0x04]                 ;段长度
+         dec ebx                            ;段界限
+         mov ecx,0x0040f200                 ;字节粒度的数据段描述符，特权级3 
          call sys_routine_seg_sel:make_seg_descriptor
       
-         ;°²×°Í·²¿¶ÎÃèÊö·ûµ½LDTÖÐ 
-         mov ebx,esi                        ;TCBµÄ»ùµØÖ·
+         ;安装头部段描述符到LDT中 
+         mov ebx,esi                        ;TCB的基地址
          call fill_descriptor_in_ldt
 
-         or cx,0000_0000_0000_0011B         ;ÉèÖÃÑ¡Ôñ×ÓµÄÌØÈ¨¼¶Îª3
-         mov [es:esi+0x44],cx               ;µÇ¼Ç³ÌÐòÍ·²¿¶ÎÑ¡Ôñ×Óµ½TCB 
-         mov [edi+0x04],cx                  ;ºÍÍ·²¿ÄÚ 
+         or cx,0000_0000_0000_0011B         ;设置选择子的特权级为3
+         mov [es:esi+0x44],cx               ;登记程序头部段选择子到TCB 
+         mov [edi+0x04],cx                  ;和头部内 
       
-         ;½¨Á¢³ÌÐò´úÂë¶ÎÃèÊö·û
+         ;建立程序代码段描述符
          mov eax,edi
-         add eax,[edi+0x14]                 ;´úÂëÆðÊ¼ÏßÐÔµØÖ·
-         mov ebx,[edi+0x18]                 ;¶Î³¤¶È
-         dec ebx                            ;¶Î½çÏÞ
-         mov ecx,0x0040f800                 ;×Ö½ÚÁ£¶ÈµÄ´úÂë¶ÎÃèÊö·û£¬ÌØÈ¨¼¶3
+         add eax,[edi+0x14]                 ;代码起始线性地址
+         mov ebx,[edi+0x18]                 ;段长度
+         dec ebx                            ;段界限
+         mov ecx,0x0040f800                 ;字节粒度的代码段描述符，特权级3
          call sys_routine_seg_sel:make_seg_descriptor
-         mov ebx,esi                        ;TCBµÄ»ùµØÖ·
+         mov ebx,esi                        ;TCB的基地址
          call fill_descriptor_in_ldt
-         or cx,0000_0000_0000_0011B         ;ÉèÖÃÑ¡Ôñ×ÓµÄÌØÈ¨¼¶Îª3
-         mov [edi+0x14],cx                  ;µÇ¼Ç´úÂë¶ÎÑ¡Ôñ×Óµ½Í·²¿
+         or cx,0000_0000_0000_0011B         ;设置选择子的特权级为3
+         mov [edi+0x14],cx                  ;登记代码段选择子到头部
 
-         ;½¨Á¢³ÌÐòÊý¾Ý¶ÎÃèÊö·û
+         ;建立程序数据段描述符
          mov eax,edi
-         add eax,[edi+0x1c]                 ;Êý¾Ý¶ÎÆðÊ¼ÏßÐÔµØÖ·
-         mov ebx,[edi+0x20]                 ;¶Î³¤¶È
-         dec ebx                            ;¶Î½çÏÞ 
-         mov ecx,0x0040f200                 ;×Ö½ÚÁ£¶ÈµÄÊý¾Ý¶ÎÃèÊö·û£¬ÌØÈ¨¼¶3
+         add eax,[edi+0x1c]                 ;数据段起始线性地址
+         mov ebx,[edi+0x20]                 ;段长度
+         dec ebx                            ;段界限 
+         mov ecx,0x0040f200                 ;字节粒度的数据段描述符，特权级3
          call sys_routine_seg_sel:make_seg_descriptor
-         mov ebx,esi                        ;TCBµÄ»ùµØÖ·
+         mov ebx,esi                        ;TCB的基地址
          call fill_descriptor_in_ldt
-         or cx,0000_0000_0000_0011B         ;ÉèÖÃÑ¡Ôñ×ÓµÄÌØÈ¨¼¶Îª3
-         mov [edi+0x1c],cx                  ;µÇ¼ÇÊý¾Ý¶ÎÑ¡Ôñ×Óµ½Í·²¿
+         or cx,0000_0000_0000_0011B         ;设置选择子的特权级为3
+         mov [edi+0x1c],cx                  ;登记数据段选择子到头部
 
-         ;½¨Á¢³ÌÐò¶ÑÕ»¶ÎÃèÊö·û
-         mov ecx,[edi+0x0c]                 ;4KBµÄ±¶ÂÊ 
+         ;建立程序堆栈段描述符
+         mov ecx,[edi+0x0c]                 ;4KB的倍率 
          mov ebx,0x000fffff
-         sub ebx,ecx                        ;µÃµ½¶Î½çÏÞ
+         sub ebx,ecx                        ;得到段界限
          mov eax,4096                        
          mul ecx                         
-         mov ecx,eax                        ;×¼±¸Îª¶ÑÕ»·ÖÅäÄÚ´æ 
+         mov ecx,eax                        ;准备为堆栈分配内存 
          call sys_routine_seg_sel:allocate_memory
-         add eax,ecx                        ;µÃµ½¶ÑÕ»µÄ¸ß¶ËÎïÀíµØÖ· 
-         mov ecx,0x00c0f600                 ;×Ö½ÚÁ£¶ÈµÄ¶ÑÕ»¶ÎÃèÊö·û£¬ÌØÈ¨¼¶3
+         add eax,ecx                        ;得到堆栈的高端物理地址 
+         mov ecx,0x00c0f600                 ;字节粒度的堆栈段描述符，特权级3
          call sys_routine_seg_sel:make_seg_descriptor
-         mov ebx,esi                        ;TCBµÄ»ùµØÖ·
+         mov ebx,esi                        ;TCB的基地址
          call fill_descriptor_in_ldt
-         or cx,0000_0000_0000_0011B         ;ÉèÖÃÑ¡Ôñ×ÓµÄÌØÈ¨¼¶Îª3
-         mov [edi+0x08],cx                  ;µÇ¼Ç¶ÑÕ»¶ÎÑ¡Ôñ×Óµ½Í·²¿
+         or cx,0000_0000_0000_0011B         ;设置选择子的特权级为3
+         mov [edi+0x08],cx                  ;登记堆栈段选择子到头部
 
-         ;ÖØ¶¨Î»SALT 
-         mov eax,mem_0_4_gb_seg_sel         ;ÕâÀïºÍÇ°Ò»ÕÂ²»Í¬£¬Í·²¿¶ÎÃèÊö·û
-         mov es,eax                         ;ÒÑ°²×°£¬µ«»¹Ã»ÓÐÉúÐ§£¬¹ÊÖ»ÄÜÍ¨
-                                            ;¹ý4GB¶Î·ÃÎÊÓÃ»§³ÌÐòÍ·²¿          
+         ;重定位SALT 
+         mov eax,mem_0_4_gb_seg_sel         ;这里和前一章不同，头部段描述符
+         mov es,eax                         ;已安装，但还没有生效，故只能通
+                                            ;过4GB段访问用户程序头部          
          mov eax,core_data_seg_sel
          mov ds,eax
       
          cld
 
-         mov ecx,[es:edi+0x24]              ;U-SALTÌõÄ¿Êý(Í¨¹ý·ÃÎÊ4GB¶ÎÈ¡µÃ) 
-         add edi,0x28                       ;U-SALTÔÚ4GB¶ÎÄÚµÄÆ«ÒÆ 
+         mov ecx,[es:edi+0x24]              ;U-SALT条目数(通过访问4GB段取得) 
+         add edi,0x28                       ;U-SALT在4GB段内的偏移 
   .b2: 
          push ecx
          push edi
@@ -641,21 +641,21 @@ load_relocate_program:                      ;¼ÓÔØ²¢ÖØ¶¨Î»ÓÃ»§³�
          push esi
          push ecx
 
-         mov ecx,64                         ;¼ìË÷±íÖÐ£¬Ã¿ÌõÄ¿µÄ±È½Ï´ÎÊý 
-         repe cmpsd                         ;Ã¿´Î±È½Ï4×Ö½Ú 
+         mov ecx,64                         ;检索表中，每条目的比较次数 
+         repe cmpsd                         ;每次比较4字节 
          jnz .b4
-         mov eax,[esi]                      ;ÈôÆ¥Åä£¬ÔòesiÇ¡ºÃÖ¸ÏòÆäºóµÄµØÖ·
-         mov [es:edi-256],eax               ;½«×Ö·û´®¸ÄÐ´³ÉÆ«ÒÆµØÖ· 
+         mov eax,[esi]                      ;若匹配，则esi恰好指向其后的地址
+         mov [es:edi-256],eax               ;将字符串改写成偏移地址 
          mov ax,[esi+4]
-         or ax,0000000000000011B            ;ÒÔÓÃ»§³ÌÐò×Ô¼ºµÄÌØÈ¨¼¶Ê¹ÓÃµ÷ÓÃÃÅ
-                                            ;¹ÊRPL=3 
-         mov [es:edi-252],ax                ;»ØÌîµ÷ÓÃÃÅÑ¡Ôñ×Ó 
+         or ax,0000000000000011B            ;以用户程序自己的特权级使用调用门
+                                            ;故RPL=3 
+         mov [es:edi-252],ax                ;回填调用门选择子 
   .b4:
       
          pop ecx
          pop esi
          add esi,salt_item_len
-         pop edi                            ;´ÓÍ·±È½Ï 
+         pop edi                            ;从头比较 
          loop .b3
       
          pop edi
@@ -663,165 +663,165 @@ load_relocate_program:                      ;¼ÓÔØ²¢ÖØ¶¨Î»ÓÃ»§³�
          pop ecx
          loop .b2
 
-         mov esi,[ebp+11*4]                 ;´Ó¶ÑÕ»ÖÐÈ¡µÃTCBµÄ»ùµØÖ·
+         mov esi,[ebp+11*4]                 ;从堆栈中取得TCB的基地址
 
-         ;´´½¨0ÌØÈ¨¼¶¶ÑÕ»
+         ;创建0特权级堆栈
          mov ecx,4096
-         mov eax,ecx                        ;ÎªÉú³É¶ÑÕ»¸ß¶ËµØÖ·×ö×¼±¸ 
+         mov eax,ecx                        ;为生成堆栈高端地址做准备 
          mov [es:esi+0x1a],ecx
-         shr dword [es:esi+0x1a],12         ;µÇ¼Ç0ÌØÈ¨¼¶¶ÑÕ»³ß´çµ½TCB 
+         shr dword [es:esi+0x1a],12         ;登记0特权级堆栈尺寸到TCB 
          call sys_routine_seg_sel:allocate_memory
-         add eax,ecx                        ;¶ÑÕ»±ØÐëÊ¹ÓÃ¸ß¶ËµØÖ·Îª»ùµØÖ·
-         mov [es:esi+0x1e],eax              ;µÇ¼Ç0ÌØÈ¨¼¶¶ÑÕ»»ùµØÖ·µ½TCB 
-         mov ebx,0xffffe                    ;¶Î³¤¶È£¨½çÏÞ£©
-         mov ecx,0x00c09600                 ;4KBÁ£¶È£¬¶ÁÐ´£¬ÌØÈ¨¼¶0
+         add eax,ecx                        ;堆栈必须使用高端地址为基地址
+         mov [es:esi+0x1e],eax              ;登记0特权级堆栈基地址到TCB 
+         mov ebx,0xffffe                    ;段长度（界限）
+         mov ecx,0x00c09600                 ;4KB粒度，读写，特权级0
          call sys_routine_seg_sel:make_seg_descriptor
-         mov ebx,esi                        ;TCBµÄ»ùµØÖ·
+         mov ebx,esi                        ;TCB的基地址
          call fill_descriptor_in_ldt
-         ;or cx,0000_0000_0000_0000          ;ÉèÖÃÑ¡Ôñ×ÓµÄÌØÈ¨¼¶Îª0
-         mov [es:esi+0x22],cx               ;µÇ¼Ç0ÌØÈ¨¼¶¶ÑÕ»Ñ¡Ôñ×Óµ½TCB
-         mov dword [es:esi+0x24],0          ;µÇ¼Ç0ÌØÈ¨¼¶¶ÑÕ»³õÊ¼ESPµ½TCB
+         ;or cx,0000_0000_0000_0000          ;设置选择子的特权级为0
+         mov [es:esi+0x22],cx               ;登记0特权级堆栈选择子到TCB
+         mov dword [es:esi+0x24],0          ;登记0特权级堆栈初始ESP到TCB
       
-         ;´´½¨1ÌØÈ¨¼¶¶ÑÕ»
+         ;创建1特权级堆栈
          mov ecx,4096
-         mov eax,ecx                        ;ÎªÉú³É¶ÑÕ»¸ß¶ËµØÖ·×ö×¼±¸
+         mov eax,ecx                        ;为生成堆栈高端地址做准备
          mov [es:esi+0x28],ecx
-         shr [es:esi+0x28],12               ;µÇ¼Ç1ÌØÈ¨¼¶¶ÑÕ»³ß´çµ½TCB
+         shr [es:esi+0x28],12               ;登记1特权级堆栈尺寸到TCB
          call sys_routine_seg_sel:allocate_memory
-         add eax,ecx                        ;¶ÑÕ»±ØÐëÊ¹ÓÃ¸ß¶ËµØÖ·Îª»ùµØÖ·
-         mov [es:esi+0x2c],eax              ;µÇ¼Ç1ÌØÈ¨¼¶¶ÑÕ»»ùµØÖ·µ½TCB
-         mov ebx,0xffffe                    ;¶Î³¤¶È£¨½çÏÞ£©
-         mov ecx,0x00c0b600                 ;4KBÁ£¶È£¬¶ÁÐ´£¬ÌØÈ¨¼¶1
+         add eax,ecx                        ;堆栈必须使用高端地址为基地址
+         mov [es:esi+0x2c],eax              ;登记1特权级堆栈基地址到TCB
+         mov ebx,0xffffe                    ;段长度（界限）
+         mov ecx,0x00c0b600                 ;4KB粒度，读写，特权级1
          call sys_routine_seg_sel:make_seg_descriptor
-         mov ebx,esi                        ;TCBµÄ»ùµØÖ·
+         mov ebx,esi                        ;TCB的基地址
          call fill_descriptor_in_ldt
-         or cx,0000_0000_0000_0001          ;ÉèÖÃÑ¡Ôñ×ÓµÄÌØÈ¨¼¶Îª1
-         mov [es:esi+0x30],cx               ;µÇ¼Ç1ÌØÈ¨¼¶¶ÑÕ»Ñ¡Ôñ×Óµ½TCB
-         mov dword [es:esi+0x32],0          ;µÇ¼Ç1ÌØÈ¨¼¶¶ÑÕ»³õÊ¼ESPµ½TCB
+         or cx,0000_0000_0000_0001          ;设置选择子的特权级为1
+         mov [es:esi+0x30],cx               ;登记1特权级堆栈选择子到TCB
+         mov dword [es:esi+0x32],0          ;登记1特权级堆栈初始ESP到TCB
 
-         ;´´½¨2ÌØÈ¨¼¶¶ÑÕ»
+         ;创建2特权级堆栈
          mov ecx,4096
-         mov eax,ecx                        ;ÎªÉú³É¶ÑÕ»¸ß¶ËµØÖ·×ö×¼±¸
+         mov eax,ecx                        ;为生成堆栈高端地址做准备
          mov [es:esi+0x36],ecx
-         shr [es:esi+0x36],12               ;µÇ¼Ç2ÌØÈ¨¼¶¶ÑÕ»³ß´çµ½TCB
+         shr [es:esi+0x36],12               ;登记2特权级堆栈尺寸到TCB
          call sys_routine_seg_sel:allocate_memory
-         add eax,ecx                        ;¶ÑÕ»±ØÐëÊ¹ÓÃ¸ß¶ËµØÖ·Îª»ùµØÖ·
-         mov [es:esi+0x3a],ecx              ;µÇ¼Ç2ÌØÈ¨¼¶¶ÑÕ»»ùµØÖ·µ½TCB
-         mov ebx,0xffffe                    ;¶Î³¤¶È£¨½çÏÞ£©
-         mov ecx,0x00c0d600                 ;4KBÁ£¶È£¬¶ÁÐ´£¬ÌØÈ¨¼¶2
+         add eax,ecx                        ;堆栈必须使用高端地址为基地址
+         mov [es:esi+0x3a],ecx              ;登记2特权级堆栈基地址到TCB
+         mov ebx,0xffffe                    ;段长度（界限）
+         mov ecx,0x00c0d600                 ;4KB粒度，读写，特权级2
          call sys_routine_seg_sel:make_seg_descriptor
-         mov ebx,esi                        ;TCBµÄ»ùµØÖ·
+         mov ebx,esi                        ;TCB的基地址
          call fill_descriptor_in_ldt
-         or cx,0000_0000_0000_0010          ;ÉèÖÃÑ¡Ôñ×ÓµÄÌØÈ¨¼¶Îª2
-         mov [es:esi+0x3e],cx               ;µÇ¼Ç2ÌØÈ¨¼¶¶ÑÕ»Ñ¡Ôñ×Óµ½TCB
-         mov dword [es:esi+0x40],0          ;µÇ¼Ç2ÌØÈ¨¼¶¶ÑÕ»³õÊ¼ESPµ½TCB
+         or cx,0000_0000_0000_0010          ;设置选择子的特权级为2
+         mov [es:esi+0x3e],cx               ;登记2特权级堆栈选择子到TCB
+         mov dword [es:esi+0x40],0          ;登记2特权级堆栈初始ESP到TCB
       
-         ;ÔÚGDTÖÐµÇ¼ÇLDTÃèÊö·û
-         mov eax,[es:esi+0x0c]              ;LDTµÄÆðÊ¼ÏßÐÔµØÖ·
-         movzx ebx,word [es:esi+0x0a]       ;LDT¶Î½çÏÞ
-         mov ecx,0x00408200                 ;LDTÃèÊö·û£¬ÌØÈ¨¼¶0
+         ;在GDT中登记LDT描述符
+         mov eax,[es:esi+0x0c]              ;LDT的起始线性地址
+         movzx ebx,word [es:esi+0x0a]       ;LDT段界限
+         mov ecx,0x00408200                 ;LDT描述符，特权级0
          call sys_routine_seg_sel:make_seg_descriptor
          call sys_routine_seg_sel:set_up_gdt_descriptor
-         mov [es:esi+0x10],cx               ;µÇ¼ÇLDTÑ¡Ôñ×Óµ½TCBÖÐ
+         mov [es:esi+0x10],cx               ;登记LDT选择子到TCB中
        
-         ;´´½¨ÓÃ»§³ÌÐòµÄTSS
-         mov ecx,104                        ;tssµÄ»ù±¾³ß´ç
+         ;创建用户程序的TSS
+         mov ecx,104                        ;tss的基本尺寸
          mov [es:esi+0x12],cx              
-         dec word [es:esi+0x12]             ;µÇ¼ÇTSS½çÏÞÖµµ½TCB 
+         dec word [es:esi+0x12]             ;登记TSS界限值到TCB 
          call sys_routine_seg_sel:allocate_memory
-         mov [es:esi+0x14],ecx              ;µÇ¼ÇTSS»ùµØÖ·µ½TCB
+         mov [es:esi+0x14],ecx              ;登记TSS基地址到TCB
       
-         ;µÇ¼Ç»ù±¾µÄTSS±í¸ñÄÚÈÝ
-         mov word [es:ecx+0],0              ;·´ÏòÁ´=0
+         ;登记基本的TSS表格内容
+         mov word [es:ecx+0],0              ;反向链=0
       
-         mov edx,[es:esi+0x24]              ;µÇ¼Ç0ÌØÈ¨¼¶¶ÑÕ»³õÊ¼ESP
-         mov [es:ecx+4],edx                 ;µ½TSSÖÐ
+         mov edx,[es:esi+0x24]              ;登记0特权级堆栈初始ESP
+         mov [es:ecx+4],edx                 ;到TSS中
       
-         mov dx,[es:esi+0x22]               ;µÇ¼Ç0ÌØÈ¨¼¶¶ÑÕ»¶ÎÑ¡Ôñ×Ó
-         mov [es:ecx+8],dx                  ;µ½TSSÖÐ
+         mov dx,[es:esi+0x22]               ;登记0特权级堆栈段选择子
+         mov [es:ecx+8],dx                  ;到TSS中
       
-         mov edx,[es:esi+0x32]              ;µÇ¼Ç1ÌØÈ¨¼¶¶ÑÕ»³õÊ¼ESP
-         mov [es:ecx+12],edx                ;µ½TSSÖÐ
+         mov edx,[es:esi+0x32]              ;登记1特权级堆栈初始ESP
+         mov [es:ecx+12],edx                ;到TSS中
 
-         mov dx,[es:esi+0x30]               ;µÇ¼Ç1ÌØÈ¨¼¶¶ÑÕ»¶ÎÑ¡Ôñ×Ó
-         mov [es:ecx+16],dx                 ;µ½TSSÖÐ
+         mov dx,[es:esi+0x30]               ;登记1特权级堆栈段选择子
+         mov [es:ecx+16],dx                 ;到TSS中
 
-         mov edx,[es:esi+0x40]              ;µÇ¼Ç2ÌØÈ¨¼¶¶ÑÕ»³õÊ¼ESP
-         mov [es:ecx+20],edx                ;µ½TSSÖÐ
+         mov edx,[es:esi+0x40]              ;登记2特权级堆栈初始ESP
+         mov [es:ecx+20],edx                ;到TSS中
 
-         mov dx,[es:esi+0x3e]               ;µÇ¼Ç2ÌØÈ¨¼¶¶ÑÕ»¶ÎÑ¡Ôñ×Ó
-         mov [es:ecx+24],dx                 ;µ½TSSÖÐ
+         mov dx,[es:esi+0x3e]               ;登记2特权级堆栈段选择子
+         mov [es:ecx+24],dx                 ;到TSS中
 
-         mov dx,[es:esi+0x10]               ;µÇ¼ÇÈÎÎñµÄLDTÑ¡Ôñ×Ó
-         mov [es:ecx+96],dx                 ;µ½TSSÖÐ
+         mov dx,[es:esi+0x10]               ;登记任务的LDT选择子
+         mov [es:ecx+96],dx                 ;到TSS中
       
-         mov dx,[es:esi+0x12]               ;µÇ¼ÇÈÎÎñµÄI/OÎ»Í¼Æ«ÒÆ
-         mov [es:ecx+102],dx                ;µ½TSSÖÐ 
+         mov dx,[es:esi+0x12]               ;登记任务的I/O位图偏移
+         mov [es:ecx+102],dx                ;到TSS中 
       
          mov word [es:ecx+100],0            ;T=0
       
-         mov dword [es:ecx+28],0            ;µÇ¼ÇCR3(PDBR)
+         mov dword [es:ecx+28],0            ;登记CR3(PDBR)
       
-         ;·ÃÎÊÓÃ»§³ÌÐòÍ·²¿£¬»ñÈ¡Êý¾ÝÌî³äTSS 
-         mov ebx,[ebp+11*4]                 ;´Ó¶ÑÕ»ÖÐÈ¡µÃTCBµÄ»ùµØÖ·
-         mov edi,[es:ebx+0x06]              ;ÓÃ»§³ÌÐò¼ÓÔØµÄ»ùµØÖ· 
+         ;访问用户程序头部，获取数据填充TSS 
+         mov ebx,[ebp+11*4]                 ;从堆栈中取得TCB的基地址
+         mov edi,[es:ebx+0x06]              ;用户程序加载的基地址 
 
-         mov edx,[es:edi+0x10]              ;µÇ¼Ç³ÌÐòÈë¿Úµã£¨EIP£© 
-         mov [es:ecx+32],edx                ;µ½TSS
+         mov edx,[es:edi+0x10]              ;登记程序入口点（EIP） 
+         mov [es:ecx+32],edx                ;到TSS
 
-         mov dx,[es:edi+0x14]               ;µÇ¼Ç³ÌÐò´úÂë¶Î£¨CS£©Ñ¡Ôñ×Ó
-         mov [es:ecx+76],dx                 ;µ½TSSÖÐ
+         mov dx,[es:edi+0x14]               ;登记程序代码段（CS）选择子
+         mov [es:ecx+76],dx                 ;到TSS中
 
-         mov dx,[es:edi+0x08]               ;µÇ¼Ç³ÌÐò¶ÑÕ»¶Î£¨SS£©Ñ¡Ôñ×Ó
-         mov [es:ecx+80],dx                 ;µ½TSSÖÐ
+         mov dx,[es:edi+0x08]               ;登记程序堆栈段（SS）选择子
+         mov [es:ecx+80],dx                 ;到TSS中
 
-         mov dx,[es:edi+0x04]               ;µÇ¼Ç³ÌÐòÊý¾Ý¶Î£¨DS£©Ñ¡Ôñ×Ó
-         mov word [es:ecx+84],dx            ;µ½TSSÖÐ¡£×¢Òâ£¬ËüÖ¸Ïò³ÌÐòÍ·²¿¶Î
+         mov dx,[es:edi+0x04]               ;登记程序数据段（DS）选择子
+         mov word [es:ecx+84],dx            ;到TSS中。注意，它指向程序头部段
       
-         mov word [es:ecx+72],0             ;TSSÖÐµÄES=0
+         mov word [es:ecx+72],0             ;TSS中的ES=0
 
-         mov word [es:ecx+88],0             ;TSSÖÐµÄFS=0
+         mov word [es:ecx+88],0             ;TSS中的FS=0
 
-         mov word [es:ecx+92],0             ;TSSÖÐµÄGS=0
+         mov word [es:ecx+92],0             ;TSS中的GS=0
 
          pushfd
          pop edx
          
          mov dword [es:ecx+36],edx          ;EFLAGS
 
-         ;ÔÚGDTÖÐµÇ¼ÇTSSÃèÊö·û
-         mov eax,[es:esi+0x14]              ;TSSµÄÆðÊ¼ÏßÐÔµØÖ·
-         movzx ebx,word [es:esi+0x12]       ;¶Î³¤¶È£¨½çÏÞ£©
-         mov ecx,0x00408900                 ;TSSÃèÊö·û£¬ÌØÈ¨¼¶0
+         ;在GDT中登记TSS描述符
+         mov eax,[es:esi+0x14]              ;TSS的起始线性地址
+         movzx ebx,word [es:esi+0x12]       ;段长度（界限）
+         mov ecx,0x00408900                 ;TSS描述符，特权级0
          call sys_routine_seg_sel:make_seg_descriptor
          call sys_routine_seg_sel:set_up_gdt_descriptor
-         mov [es:esi+0x18],cx               ;µÇ¼ÇTSSÑ¡Ôñ×Óµ½TCB
+         mov [es:esi+0x18],cx               ;登记TSS选择子到TCB
 
-         pop es                             ;»Ö¸´µ½µ÷ÓÃ´Ë¹ý³ÌÇ°µÄes¶Î 
-         pop ds                             ;»Ö¸´µ½µ÷ÓÃ´Ë¹ý³ÌÇ°µÄds¶Î
+         pop es                             ;恢复到调用此过程前的es段 
+         pop ds                             ;恢复到调用此过程前的ds段
       
          popad
       
-         ret 8                              ;¶ªÆúµ÷ÓÃ±¾¹ý³ÌÇ°Ñ¹ÈëµÄ²ÎÊý 
+         ret 8                              ;丢弃调用本过程前压入的参数 
       
 ;-------------------------------------------------------------------------------
-append_to_tcb_link:                         ;ÔÚTCBÁ´ÉÏ×·¼ÓÈÎÎñ¿ØÖÆ¿é
-                                            ;ÊäÈë£ºECX=TCBÏßÐÔ»ùµØÖ·
+append_to_tcb_link:                         ;在TCB链上追加任务控制块
+                                            ;输入：ECX=TCB线性基地址
          push eax
          push edx
          push ds
          push es
          
-         mov eax,core_data_seg_sel          ;ÁîDSÖ¸ÏòÄÚºËÊý¾Ý¶Î 
+         mov eax,core_data_seg_sel          ;令DS指向内核数据段 
          mov ds,eax
-         mov eax,mem_0_4_gb_seg_sel         ;ÁîESÖ¸Ïò0..4GB¶Î
+         mov eax,mem_0_4_gb_seg_sel         ;令ES指向0..4GB段
          mov es,eax
          
-         mov dword [es: ecx+0x00],0         ;µ±Ç°TCBÖ¸ÕëÓòÇåÁã£¬ÒÔÖ¸Ê¾ÕâÊÇ×î
-                                            ;ºóÒ»¸öTCB
+         mov dword [es: ecx+0x00],0         ;当前TCB指针域清零，以指示这是最
+                                            ;后一个TCB
                                              
-         mov eax,[tcb_chain]                ;TCB±íÍ·Ö¸Õë
-         or eax,eax                         ;Á´±íÎª¿Õ£¿
+         mov eax,[tcb_chain]                ;TCB表头指针
+         or eax,eax                         ;链表为空？
          jz .notcb 
          
   .searc:
@@ -834,7 +834,7 @@ append_to_tcb_link:                         ;ÔÚTCBÁ´ÉÏ×·¼ÓÈÎÎñ¿Ø
          jmp .retpc
          
   .notcb:       
-         mov [tcb_chain],ecx                ;ÈôÎª¿Õ±í£¬Ö±½ÓÁî±íÍ·Ö¸ÕëÖ¸ÏòTCB
+         mov [tcb_chain],ecx                ;若为空表，直接令表头指针指向TCB
          
   .retpc:
          pop es
@@ -846,16 +846,16 @@ append_to_tcb_link:                         ;ÔÚTCBÁ´ÉÏ×·¼ÓÈÎÎñ¿Ø
          
 ;-------------------------------------------------------------------------------
 start:
-         mov ecx,core_data_seg_sel          ;ÁîDSÖ¸ÏòºËÐÄÊý¾Ý¶Î 
+         mov ecx,core_data_seg_sel          ;令DS指向核心数据段 
          mov ds,ecx
 
-         mov ecx,mem_0_4_gb_seg_sel         ;ÁîESÖ¸Ïò4GBÊý¾Ý¶Î 
+         mov ecx,mem_0_4_gb_seg_sel         ;令ES指向4GB数据段 
          mov es,ecx
 
          mov ebx,message_1                    
          call sys_routine_seg_sel:put_string
                                          
-         ;ÏÔÊ¾´¦ÀíÆ÷Æ·ÅÆÐÅÏ¢ 
+         ;显示处理器品牌信息 
          mov eax,0x80000002
          cpuid
          mov [cpu_brand + 0x00],eax
@@ -877,91 +877,91 @@ start:
          mov [cpu_brand + 0x28],ecx
          mov [cpu_brand + 0x2c],edx
 
-         mov ebx,cpu_brnd0                  ;ÏÔÊ¾´¦ÀíÆ÷Æ·ÅÆÐÅÏ¢ 
+         mov ebx,cpu_brnd0                  ;显示处理器品牌信息 
          call sys_routine_seg_sel:put_string
          mov ebx,cpu_brand
          call sys_routine_seg_sel:put_string
          mov ebx,cpu_brnd1
          call sys_routine_seg_sel:put_string
 
-         ;ÒÔÏÂ¿ªÊ¼°²×°ÎªÕû¸öÏµÍ³·þÎñµÄµ÷ÓÃÃÅ¡£ÌØÈ¨¼¶Ö®¼äµÄ¿ØÖÆ×ªÒÆ±ØÐëÊ¹ÓÃÃÅ
-         mov edi,salt                       ;C-SALT±íµÄÆðÊ¼Î»ÖÃ 
-         mov ecx,salt_items                 ;C-SALT±íµÄÌõÄ¿ÊýÁ¿ 
+         ;以下开始安装为整个系统服务的调用门。特权级之间的控制转移必须使用门
+         mov edi,salt                       ;C-SALT表的起始位置 
+         mov ecx,salt_items                 ;C-SALT表的条目数量 
   .b3:
          push ecx   
-         mov eax,[edi+256]                  ;¸ÃÌõÄ¿Èë¿ÚµãµÄ32Î»Æ«ÒÆµØÖ· 
-         mov bx,[edi+260]                   ;¸ÃÌõÄ¿Èë¿ÚµãµÄ¶ÎÑ¡Ôñ×Ó 
-         mov cx,1_11_0_1100_000_00000B      ;ÌØÈ¨¼¶3µÄµ÷ÓÃÃÅ(3ÒÔÉÏµÄÌØÈ¨¼¶²Å
-                                            ;ÔÊÐí·ÃÎÊ)£¬0¸ö²ÎÊý(ÒòÎªÓÃ¼Ä´æÆ÷
-                                            ;´«µÝ²ÎÊý£¬¶øÃ»ÓÐÓÃÕ») 
+         mov eax,[edi+256]                  ;该条目入口点的32位偏移地址 
+         mov bx,[edi+260]                   ;该条目入口点的段选择子 
+         mov cx,1_11_0_1100_000_00000B      ;特权级3的调用门(3以上的特权级才
+                                            ;允许访问)，0个参数(因为用寄存器
+                                            ;传递参数，而没有用栈) 
          call sys_routine_seg_sel:make_gate_descriptor
          call sys_routine_seg_sel:set_up_gdt_descriptor
-         mov [edi+260],cx                   ;½«·µ»ØµÄÃÅÃèÊö·ûÑ¡Ôñ×Ó»ØÌî
-         add edi,salt_item_len              ;Ö¸ÏòÏÂÒ»¸öC-SALTÌõÄ¿ 
+         mov [edi+260],cx                   ;将返回的门描述符选择子回填
+         add edi,salt_item_len              ;指向下一个C-SALT条目 
          pop ecx
          loop .b3
 
-         ;¶ÔÃÅ½øÐÐ²âÊÔ 
+         ;对门进行测试 
          mov ebx,message_2
-         call far [salt_1+256]              ;Í¨¹ýÃÅÏÔÊ¾ÐÅÏ¢(Æ«ÒÆÁ¿½«±»ºöÂÔ) 
+         call far [salt_1+256]              ;通过门显示信息(偏移量将被忽略) 
       
-         ;Îª³ÌÐò¹ÜÀíÆ÷µÄTSS·ÖÅäÄÚ´æ¿Õ¼ä 
-         mov ecx,104                        ;Îª¸ÃÈÎÎñµÄTSS·ÖÅäÄÚ´æ
+         ;为程序管理器的TSS分配内存空间 
+         mov ecx,104                        ;为该任务的TSS分配内存
          call sys_routine_seg_sel:allocate_memory
-         mov [prgman_tss+0x00],ecx          ;±£´æ³ÌÐò¹ÜÀíÆ÷µÄTSS»ùµØÖ· 
+         mov [prgman_tss+0x00],ecx          ;保存程序管理器的TSS基地址 
       
-         ;ÔÚ³ÌÐò¹ÜÀíÆ÷µÄTSSÖÐÉèÖÃ±ØÒªµÄÏîÄ¿ 
-         mov word [es:ecx+96],0             ;Ã»ÓÐLDT¡£´¦ÀíÆ÷ÔÊÐíÃ»ÓÐLDTµÄÈÎÎñ¡£
-         mov word [es:ecx+102],103          ;Ã»ÓÐI/OÎ»Í¼¡£0ÌØÈ¨¼¶ÊÂÊµÉÏ²»ÐèÒª¡£
-         mov word [es:ecx+0],0              ;·´ÏòÁ´=0
-         mov dword [es:ecx+28],0            ;µÇ¼ÇCR3(PDBR)
+         ;在程序管理器的TSS中设置必要的项目 
+         mov word [es:ecx+96],0             ;没有LDT。处理器允许没有LDT的任务。
+         mov word [es:ecx+102],103          ;没有I/O位图。0特权级事实上不需要。
+         mov word [es:ecx+0],0              ;反向链=0
+         mov dword [es:ecx+28],0            ;登记CR3(PDBR)
          mov word [es:ecx+100],0            ;T=0
-                                            ;²»ÐèÒª0¡¢1¡¢2ÌØÈ¨¼¶¶ÑÕ»¡£0ÌØ¼¶²»
-                                            ;»áÏòµÍÌØÈ¨¼¶×ªÒÆ¿ØÖÆ¡£
+                                            ;不需要0、1、2特权级堆栈。0特级不
+                                            ;会向低特权级转移控制。
          
-         ;´´½¨TSSÃèÊö·û£¬²¢°²×°µ½GDTÖÐ 
-         mov eax,ecx                        ;TSSµÄÆðÊ¼ÏßÐÔµØÖ·
-         mov ebx,103                        ;¶Î³¤¶È£¨½çÏÞ£©
-         mov ecx,0x00408900                 ;TSSÃèÊö·û£¬ÌØÈ¨¼¶0
+         ;创建TSS描述符，并安装到GDT中 
+         mov eax,ecx                        ;TSS的起始线性地址
+         mov ebx,103                        ;段长度（界限）
+         mov ecx,0x00408900                 ;TSS描述符，特权级0
          call sys_routine_seg_sel:make_seg_descriptor
          call sys_routine_seg_sel:set_up_gdt_descriptor
-         mov [prgman_tss+0x04],cx           ;±£´æ³ÌÐò¹ÜÀíÆ÷µÄTSSÃèÊö·ûÑ¡Ôñ×Ó 
+         mov [prgman_tss+0x04],cx           ;保存程序管理器的TSS描述符选择子 
 
-         ;ÈÎÎñ¼Ä´æÆ÷TRÖÐµÄÄÚÈÝÊÇÈÎÎñ´æÔÚµÄ±êÖ¾£¬¸ÃÄÚÈÝÒ²¾ö¶¨ÁËµ±Ç°ÈÎÎñÊÇË­¡£
-         ;ÏÂÃæµÄÖ¸ÁîÎªµ±Ç°ÕýÔÚÖ´ÐÐµÄ0ÌØÈ¨¼¶ÈÎÎñ¡°³ÌÐò¹ÜÀíÆ÷¡±ºó²¹ÊÖÐø£¨TSS£©¡£
+         ;任务寄存器TR中的内容是任务存在的标志，该内容也决定了当前任务是谁。
+         ;下面的指令为当前正在执行的0特权级任务“程序管理器”后补手续（TSS）。
          ltr cx                              
 
-         ;ÏÖÔÚ¿ÉÈÏÎª¡°³ÌÐò¹ÜÀíÆ÷¡±ÈÎÎñÕýÖ´ÐÐÖÐ
+         ;现在可认为“程序管理器”任务正执行中
          mov ebx,prgman_msg1
          call sys_routine_seg_sel:put_string
 
          mov ecx,0x46
          call sys_routine_seg_sel:allocate_memory
-         call append_to_tcb_link            ;½«´ËTCBÌí¼Óµ½TCBÁ´ÖÐ 
+         call append_to_tcb_link            ;将此TCB添加到TCB链中 
       
-         push dword 50                      ;ÓÃ»§³ÌÐòÎ»ÓÚÂß¼­50ÉÈÇø
-         push ecx                           ;Ñ¹ÈëÈÎÎñ¿ØÖÆ¿éÆðÊ¼ÏßÐÔµØÖ· 
+         push dword 50                      ;用户程序位于逻辑50扇区
+         push ecx                           ;压入任务控制块起始线性地址 
        
          call load_relocate_program         
       
-         call far [es:ecx+0x14]             ;Ö´ÐÐÈÎÎñÇÐ»»¡£ºÍÉÏÒ»ÕÂ²»Í¬£¬ÈÎÎñÇÐ
-                                            ;»»Ê±Òª»Ö¸´TSSÄÚÈÝ£¬ËùÒÔÔÚ´´½¨ÈÎÎñ
-                                            ;Ê±TSSÒªÌîÐ´ÍêÕû 
+         call far [es:ecx+0x14]             ;执行任务切换。和上一章不同，任务切
+                                            ;换时要恢复TSS内容，所以在创建任务
+                                            ;时TSS要填写完整 
                                           
-         ;ÖØÐÂ¼ÓÔØ²¢ÇÐ»»ÈÎÎñ 
+         ;重新加载并切换任务 
          mov ebx,prgman_msg2
          call sys_routine_seg_sel:put_string
 
          mov ecx,0x46
          call sys_routine_seg_sel:allocate_memory
-         call append_to_tcb_link            ;½«´ËTCBÌí¼Óµ½TCBÁ´ÖÐ
+         call append_to_tcb_link            ;将此TCB添加到TCB链中
 
-         push dword 50                      ;ÓÃ»§³ÌÐòÎ»ÓÚÂß¼­50ÉÈÇø
-         push ecx                           ;Ñ¹ÈëÈÎÎñ¿ØÖÆ¿éÆðÊ¼ÏßÐÔµØÖ·
+         push dword 50                      ;用户程序位于逻辑50扇区
+         push ecx                           ;压入任务控制块起始线性地址
 
          call load_relocate_program
 
-         jmp far [es:ecx+0x14]              ;Ö´ÐÐÈÎÎñÇÐ»»
+         jmp far [es:ecx+0x14]              ;执行任务切换
 
          mov ebx,prgman_msg3
          call sys_routine_seg_sel:put_string

@@ -6,7 +6,7 @@ for fileName in $(find ./ -name "*.asm" | grep -v 'utf8'); do
 	targetName=${dirName}/${baseName}_utf8.asm
 
 	if [ ! -e ${targetName} ];then
-		iconv -f ISO-8859-1 -t UTF-8 ${fileName} -o ${targetName}
+		iconv -f gbk -t UTF-8 ${fileName} -o ${targetName}
 		dos2unix ${targetName}
 	fi
 done

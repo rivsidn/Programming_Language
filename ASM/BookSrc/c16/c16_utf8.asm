@@ -1,16 +1,16 @@
-         ;´úÂëÇåµ¥16-2
-         ;ÎÄ¼þÃû£ºc16.asm
-         ;ÎÄ¼þËµÃ÷£ºÓÃ»§³ÌÐò 
-         ;´´½¨ÈÕÆÚ£º2012-05-25 13:53   
+         ;代码清单16-2
+         ;文件名：c16.asm
+         ;文件说明：用户程序 
+         ;创建日期：2012-05-25 13:53   
 
-         program_length   dd program_end          ;³ÌÐò×Ü³¤¶È#0x00
-         entry_point      dd start                ;³ÌÐòÈë¿Úµã#0x04
-         salt_position    dd salt_begin           ;SALT±íÆðÊ¼Æ«ÒÆÁ¿#0x08 
-         salt_items       dd (salt_end-salt_begin)/256 ;SALTÌõÄ¿Êý#0x0C
+         program_length   dd program_end          ;程序总长度#0x00
+         entry_point      dd start                ;程序入口点#0x04
+         salt_position    dd salt_begin           ;SALT表起始偏移量#0x08 
+         salt_items       dd (salt_end-salt_begin)/256 ;SALT条目数#0x0C
 
 ;-------------------------------------------------------------------------------
 
-         ;·ûºÅµØÖ·¼ìË÷±í
+         ;符号地址检索表
          salt_begin:                                     
 
          PrintString      db  '@PrintString'
@@ -20,7 +20,7 @@
                      times 256-($-TerminateProgram) db 0
 ;-------------------------------------------------------------------------------
 
-         reserved  times 256*500 db 0            ;±£ÁôÒ»¸ö¿Õ°×Çø£¬ÒÔÑÝÊ¾·ÖÒ³
+         reserved  times 256*500 db 0            ;保留一个空白区，以演示分页
 
 ;-------------------------------------------------------------------------------
          ReadDiskData     db  '@ReadDiskData'
@@ -58,7 +58,7 @@ start:
          inc esi
          loop .b1 
         
-         call far [TerminateProgram]              ;ÍË³ö£¬²¢½«¿ØÖÆÈ¨·µ»Øµ½ºËÐÄ 
+         call far [TerminateProgram]              ;退出，并将控制权返回到核心 
     
 ;-------------------------------------------------------------------------------
 program_end:

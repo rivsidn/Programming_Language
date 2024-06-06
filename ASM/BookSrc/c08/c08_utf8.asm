@@ -1,37 +1,37 @@
          ;代码清单8-2
          ;文件名：c08.asm
-         ;文件说明：用户程序 
+         ;文件说明：用户程序
          ;创建日期：2011-5-5 18:17
-         
+
 ;===============================================================================
-SECTION header vstart=0                     ;定义用户程序头部段 
+SECTION header vstart=0                     ;定义用户程序头部段
     program_length  dd program_end          ;程序总长度[0x00]
-    
+
     ;用户程序入口点
     code_entry      dw start                ;偏移地址[0x04]
-                    dd section.code_1.start ;段地址[0x06] 
-    
+                    dd section.code_1.start ;段地址[0x06]
+
     realloc_tbl_len dw (header_end-code_1_segment)/4
                                             ;段重定位表项个数[0x0a]
-    
-    ;段重定位表           
+
+    ;段重定位表
     code_1_segment  dd section.code_1.start ;[0x0c]
     code_2_segment  dd section.code_2.start ;[0x10]
     data_1_segment  dd section.data_1.start ;[0x14]
     data_2_segment  dd section.data_2.start ;[0x18]
     stack_segment   dd section.stack.start  ;[0x1c]
-    
-    header_end:                
-    
+
+    header_end:
+
 ;===============================================================================
-SECTION code_1 align=16 vstart=0         ;定义代码段1（16字节对齐） 
+SECTION code_1 align=16 vstart=0         ;定义代码段1（16字节对齐）
 put_string:                              ;显示串(0结尾)。
                                          ;输入：DS:BX=串地址
          mov cl,[bx]
          or cl,cl                        ;cl=0 ?
-         jz .exit                        ;是的，返回主程序 
+         jz .exit                        ;是的，返回主程序
          call put_char
-         inc bx                          ;下一个字符 
+         inc bx                          ;下一个字符
          jmp put_string
 
    .exit:
@@ -52,20 +52,20 @@ put_char:                                ;显示一个字符
          mov al,0x0e
          out dx,al
          mov dx,0x3d5
-         in al,dx                        ;高8位 
+         in al,dx                        ;高8位
          mov ah,al
 
          mov dx,0x3d4
          mov al,0x0f
          out dx,al
          mov dx,0x3d5
-         in al,dx                        ;低8位 
+         in al,dx                        ;低8位
          mov bx,ax                       ;BX=代表光标位置的16位数
 
          cmp cl,0x0d                     ;回车符？
-         jnz .put_0a                     ;不是。看看是不是换行等字符 
-         mov ax,bx                       ;此句略显多余，但去掉后还得改书，麻烦 
-         mov bl,80                       
+         jnz .put_0a                     ;不是。看看是不是换行等字符
+         mov ax,bx                       ;此句略显多余，但去掉后还得改书，麻烦
+         mov bl,80
          div bl
          mul bl
          mov bx,ax
@@ -73,7 +73,7 @@ put_char:                                ;显示一个字符
 
  .put_0a:
          cmp cl,0x0a                     ;换行符？
-         jnz .put_other                  ;不是，那就正常显示字符 
+         jnz .put_other                  ;不是，那就正常显示字符
          add bx,80
          jmp .roll_screen
 
@@ -134,30 +134,30 @@ put_char:                                ;显示一个字符
 ;-------------------------------------------------------------------------------
   start:
          ;初始执行时，DS和ES指向用户程序头部段
-         mov ax,[stack_segment]           ;设置到用户程序自己的堆栈 
+         mov ax,[stack_segment]           ;设置到用户程序自己的堆栈
          mov ss,ax
          mov sp,stack_end
-         
+
          mov ax,[data_1_segment]          ;设置到用户程序自己的数据段
          mov ds,ax
 
          mov bx,msg0
-         call put_string                  ;显示第一段信息 
+         call put_string                  ;显示第一段信息
 
          push word [es:code_2_segment]
          mov ax,begin
          push ax                          ;可以直接push begin,80386+
-         
-         retf                             ;转移到代码段2执行 
-         
-  continue:
-         mov ax,[es:data_2_segment]       ;段寄存器DS切换到数据段2 
-         mov ds,ax
-         
-         mov bx,msg1
-         call put_string                  ;显示第二段信息 
 
-         jmp $ 
+         retf                             ;转移到代码段2执行
+
+  continue:
+         mov ax,[es:data_2_segment]       ;段寄存器DS切换到数据段2
+         mov ds,ax
+
+         mov bx,msg1
+         call put_string                  ;显示第二段信息
+
+         jmp $
 
 ;===============================================================================
 SECTION code_2 align=16 vstart=0          ;定义代码段2（16字节对齐）
@@ -166,9 +166,9 @@ SECTION code_2 align=16 vstart=0          ;定义代码段2（16字节对齐）
          push word [es:code_1_segment]
          mov ax,continue
          push ax                          ;可以直接push continue,80386+
-         
-         retf                             ;转移到代码段1接着执行 
-         
+
+         retf                             ;转移到代码段1接着执行
+
 ;===============================================================================
 SECTION data_1 align=16 vstart=0
 
@@ -199,10 +199,10 @@ SECTION data_2 align=16 vstart=0
 
 ;===============================================================================
 SECTION stack align=16 vstart=0
-           
+
          resb 256
 
-stack_end:  
+stack_end:
 
 ;===============================================================================
 SECTION trail align=16

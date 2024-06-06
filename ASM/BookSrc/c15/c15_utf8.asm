@@ -1,27 +1,27 @@
-         ;´úÂëÇåµ¥15-2
-         ;ÎÄ¼þÃû£ºc15.asm
-         ;ÎÄ¼þËµÃ÷£ºÓÃ»§³ÌÐò 
-         ;´´½¨ÈÕÆÚ£º2011-11-15 19:11   
+         ;代码清单15-2
+         ;文件名：c15.asm
+         ;文件说明：用户程序 
+         ;创建日期：2011-11-15 19:11   
 
 ;===============================================================================
 SECTION header vstart=0
 
-         program_length   dd program_end          ;³ÌÐò×Ü³¤¶È#0x00
+         program_length   dd program_end          ;程序总长度#0x00
          
-         head_len         dd header_end           ;³ÌÐòÍ·²¿µÄ³¤¶È#0x04
+         head_len         dd header_end           ;程序头部的长度#0x04
 
-         stack_seg        dd 0                    ;ÓÃÓÚ½ÓÊÕ¶ÑÕ»¶ÎÑ¡Ôñ×Ó#0x08
-         stack_len        dd 1                    ;³ÌÐò½¨ÒéµÄ¶ÑÕ»´óÐ¡#0x0c
-                                                  ;ÒÔ4KBÎªµ¥Î»
+         stack_seg        dd 0                    ;用于接收堆栈段选择子#0x08
+         stack_len        dd 1                    ;程序建议的堆栈大小#0x0c
+                                                  ;以4KB为单位
                                                   
-         prgentry         dd start                ;³ÌÐòÈë¿Ú#0x10 
-         code_seg         dd section.code.start   ;´úÂë¶ÎÎ»ÖÃ#0x14
-         code_len         dd code_end             ;´úÂë¶Î³¤¶È#0x18
+         prgentry         dd start                ;程序入口#0x10 
+         code_seg         dd section.code.start   ;代码段位置#0x14
+         code_len         dd code_end             ;代码段长度#0x18
 
-         data_seg         dd section.data.start   ;Êý¾Ý¶ÎÎ»ÖÃ#0x1c
-         data_len         dd data_end             ;Êý¾Ý¶Î³¤¶È#0x20
+         data_seg         dd section.data.start   ;数据段位置#0x1c
+         data_len         dd data_end             ;数据段长度#0x20
 ;-------------------------------------------------------------------------------
-         ;·ûºÅµØÖ·¼ìË÷±í
+         ;符号地址检索表
          salt_items       dd (header_end-salt)/256 ;#0x24
          
          salt:                                     ;#0x28
@@ -53,7 +53,7 @@ data_end:
 ;===============================================================================
 SECTION code vstart=0
 start:
-         ;ÈÎÎñÆô¶¯Ê±£¬DSÖ¸ÏòÍ·²¿¶Î£¬Ò²²»ÐèÒªÉèÖÃ¶ÑÕ» 
+         ;任务启动时，DS指向头部段，也不需要设置堆栈 
          mov eax,ds
          mov fs,eax
      
@@ -71,7 +71,7 @@ start:
          mov ebx,message_2
          call far [fs:PrintString]
      
-         call far [fs:TerminateProgram]      ;ÍË³ö£¬²¢½«¿ØÖÆÈ¨·µ»Øµ½ºËÐÄ 
+         call far [fs:TerminateProgram]      ;退出，并将控制权返回到核心 
     
 code_end:
 
